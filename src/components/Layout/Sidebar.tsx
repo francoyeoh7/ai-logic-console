@@ -1,4 +1,4 @@
-import { FlaskConical, Shield, GitBranch, Activity, Download } from 'lucide-react'
+import { FlaskConical, Shield, GitBranch, Activity, Download, Puzzle, MessageSquare } from 'lucide-react'
 import { useConfigStore } from '../../useConfigStore'
 import type { ModuleId } from '../../types'
 
@@ -7,6 +7,8 @@ const navItems: { id: ModuleId; label: string; icon: typeof FlaskConical }[] = [
   { id: 'guardrails', label: '护栏与公理', icon: Shield },
   { id: 'eventbus', label: '事件总线路由图', icon: GitBranch },
   { id: 'director', label: '导演节奏控制台', icon: Activity },
+  { id: 'context', label: '上下文编排器', icon: Puzzle },
+  { id: 'sandbox', label: '对话沙盒', icon: MessageSquare },
 ]
 
 export function Sidebar() {

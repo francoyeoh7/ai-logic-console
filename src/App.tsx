@@ -4,12 +4,16 @@ import { PersonaForge } from './components/PersonaForge/PersonaForge'
 import { Guardrails } from './components/Guardrails/Guardrails'
 import { EventBusVisualizer } from './components/EventBus/EventBusVisualizer'
 import { DirectorDashboard } from './components/DirectorDashboard/DirectorDashboard'
+import { ContextComposer } from './components/ContextComposer/ContextComposer'
+import { ConversationSandbox } from './components/ConversationSandbox/ConversationSandbox'
 
 const modules = {
   persona: PersonaForge,
   guardrails: Guardrails,
   eventbus: EventBusVisualizer,
   director: DirectorDashboard,
+  context: ContextComposer,
+  sandbox: ConversationSandbox,
 }
 
 export default function App() {

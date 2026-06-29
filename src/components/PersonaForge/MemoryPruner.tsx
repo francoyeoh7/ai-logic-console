@@ -1,4 +1,5 @@
-import { Pin, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { Pin, Trash2, Search, Brain } from 'lucide-react'
 import { useConfigStore } from '../../useConfigStore'
 
 export function MemoryPruner() {
@@ -7,11 +8,16 @@ export function MemoryPruner() {
   const npcs = useConfigStore((s) => s.npcs)
   const pinMemory = useConfigStore((s) => s.pinMemory)
   const forgetMemory = useConfigStore((s) => s.forgetMemory)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const npc = npcs.find((n) => n.id === selectedId)
   const npcMemories = memories
     .filter((m) => m.npcId === selectedId)
     .sort((a, b) => b.timestamp - a.timestamp)
+
+  const filtered = searchQuery
+    ? npcMemories.filter((m) => m.summary.includes(searchQuery))
+    : npcMemories
 
   if (!npc) {
     return (
@@ -28,13 +34,28 @@ export function MemoryPruner() {
         <p className="mt-1 text-[10px] text-neutral-500">
           {npc.name} · 共 {npcMemories.length} 条交互记录
         </p>
+        <div className="mt-2 flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-neutral-500" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="语义检索测试..."
+              className="w-full rounded border border-neutral-800 bg-neutral-900 py-1.5 pl-7 pr-2 text-[10px] text-neutral-200 placeholder:text-neutral-600"
+            />
+          </div>
+          <span className="flex items-center gap-1 text-[9px] text-neutral-500">
+            <Brain className="h-3 w-3" />
+            模拟
+          </span>
+        </div>
       </div>
 
-      {npcMemories.length === 0 ? (
+      {filtered.length === 0 ? (
         <p className="text-xs text-neutral-600">暂无记忆数据</p>
       ) : (
         <div className="space-y-2">
-          {npcMemories.map((mem) => (
+          {filtered.map((mem) => (
             <div
               key={mem.id}
               className={`rounded-md border p-3 transition-all ${
