@@ -688,13 +688,20 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
       .map((sec) => `[SECTION ${sec.id}: ${sec.title}]\n${sec.content}`)
       .join('\n\n')
 
+    // 取 Section C 作为 user message
+    const sectionC = s.contextSections.find((sec) => sec.id === 'C')
+    const userMessage = sectionC?.content
+      ? sectionC.content
+      : undefined
+
     set({ isLlmCalling: true, llmCallError: null })
 
     try {
       const result = await llmService.chatCompletion({
         systemPrompt,
+        userMessage,
         temperature: 0.7,
-        maxTokens: 256,
+        maxTokens: 128,
       })
 
       set({

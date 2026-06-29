@@ -82,19 +82,10 @@ ${questLines}
 `)
   }
 
-  // 9. 输出格式
-  parts.push(`[输出格式要求]
-你必须输出一个 JSON 对象，字段如下:
-- action: 必须是以下之一 [SPEAK, OBSERVE, DO_NOTHING, MOVE_TO, FLEE_FROM, GIVE_ITEM, SHOUT_WARNING]
-- params: 动作参数。SPEAK 的时候必须有 {"target":"player","message":"你的对话内容"}
-- emotion: 情绪标签 [neutral,happy,sad,angry,fearful,surprised,disgusted]
-- priority: 0.0 到 1.0 的紧迫程度
-- reasoning: 简短推理原因 (≤20字)
-
-你的 message 是你真正说的话——不是旁白、不是叙述。说话时直接说，不要写"老韩说:"之类的。
-你应该体现你的性格、关系、当前情绪。不要回复模板化的客套话。
-
-示例: {"action":"SPEAK","params":{"target":"player","message":"哈！又是你！这次别再把杯子打碎了！"},"emotion":"angry","priority":0.4,"reasoning":"remembering_previous_incident"}`)
+  // 9. 输出格式 (精简版)
+  parts.push(`[输出格式]
+JSON: {"action":"SPEAK","params":{"target":"player","message":"你的对话"},"emotion":"neutral","priority":0.3,"reasoning":"原因"}
+你直接说话，不写旁白。体现你的性格。`)
 
   return parts.join('\n')
 }

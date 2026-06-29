@@ -2,6 +2,7 @@ const LLM_BASE = 'http://localhost:11434/v1'
 
 interface ChatCompletionRequest {
   systemPrompt: string
+  userMessage?: string
   temperature?: number
   maxTokens?: number
 }
@@ -22,12 +23,16 @@ export const llmService = {
       model: 'qwen2.5:7b',
       messages: [
         { role: 'system', content: req.systemPrompt },
-        { role: 'user', content: 'Respond to the current situation. Output a JSON action command.' },
+        { role: 'user', content: req.userMessage ?? 'Respond to the current situation. Output a JSON action command.' },
       ],
       temperature: req.temperature ?? 0.7,
-      max_tokens: req.maxTokens ?? 256,
+      max_tokens: req.maxTokens ?? 128,
       stream: false,
       format: 'json',
+      options: {
+        num_predict: req.maxTokens ?? 128,
+        num_ctx: 4096,
+      },
     }
 
     const res = await fetch(`${LLM_BASE}/chat/completions`, {
