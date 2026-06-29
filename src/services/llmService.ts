@@ -44,12 +44,22 @@ export const llmService = {
     }
 
     const data = await res.json()
-    const content = data.choices?.[0]?.message?.content ?? '{}'
+    const content: string = data.choices?.[0]?.message?.content ?? '{}'
+    const finishReason: string = data.choices?.[0]?.finish_reason ?? ''
     let parsed: Record<string, unknown>
     try {
       parsed = JSON.parse(content)
     } catch {
-      parsed = { raw: content }
+      // JSON 截断：尝试提取已有字段
+      parsed = { raw: content, action: 'SPEAK' }
+      const msgMatch = content.match(/"message"\s*:\s*"([^"]*)/)
+      if (msgMatch) {
+        parsed.action = 'SPEAK'
+        parsed.params = { target: 'player', message: msgMatch[1] + (finishReason === 'length' ? '…' : '') }
+        parsed.emotion = 'neutral'
+        parsed.priority = 0.3
+        parsed.reasoning = finishReason === 'length' ? 'truncated' : 'parse_error'
+      }
     }
 
     return {

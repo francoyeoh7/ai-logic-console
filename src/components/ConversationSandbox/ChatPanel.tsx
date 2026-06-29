@@ -73,7 +73,7 @@ export function ChatPanel({ npcName, messages, onSend, isProcessing, input, setI
               <Bot className="h-3 w-3 text-primary" />
             </div>
             <div className="rounded-lg bg-neutral-800/70 px-3 py-2 text-xs text-neutral-500">
-              <span className="animate-pulse">思考中...</span>
+              <span className="animate-pulse">Qwen2.5:7b 推理中… 约3-10秒</span>
             </div>
           </div>
         )}

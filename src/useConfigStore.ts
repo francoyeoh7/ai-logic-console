@@ -701,7 +701,7 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
         systemPrompt,
         userMessage,
         temperature: 0.7,
-        maxTokens: 128,
+        maxTokens: 300,
       })
 
       set({
