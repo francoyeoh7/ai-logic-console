@@ -54,14 +54,25 @@ export function ConversationSandbox() {
     if (!npc) return
     if (!identityRef.current) return
 
-    setMessages((prev) => [...prev, { role: 'user', content: text, timestamp: Date.now() }])
+    const newMsg: Message = { role: 'user', content: text, timestamp: Date.now() }
+    const currentMessages = messages
+      .filter((m) => m.role === 'user' || m.role === 'npc')
+      .filter((m) => !m.content.startsWith('*') && !m.content.startsWith('——'))
 
-    // 只更新当前状态（Section C），人格画像不变
-    updateSection('C', `[当前交互]
-你正与玩家面对面交谈。
-玩家刚刚说: "${text}"
+    // 拼装完整对话历史（最近 8 轮）
+    const dialogueHistory = [...currentMessages, newMsg]
+      .slice(-8)
+      .map((m) => `${m.role === 'user' ? '玩家' : npc.name}: ${m.content}`)
+      .join('\n')
 
-请根据你的人格画像自然回应。记住：你是 ${npc.name}，${npc.roleTags?.join('、') ?? '普通人'}，${npc.faction ? '属于' + npc.faction : '没有固定阵营'}。`)
+    setMessages((prev) => [...prev, newMsg])
+
+    updateSection('C', `[当前对话]
+你正与玩家交谈。以下是对话历史：
+
+${dialogueHistory}
+
+请根据你的人格画像和对话上下文自然回应下一句。不要忘记前面说了什么。`)
 
     await callLlm()
     const resp = useConfigStore.getState().lastLlmResponse
@@ -70,7 +81,7 @@ export function ConversationSandbox() {
       : '(无响应)'
 
     setMessages((prev) => [...prev, { role: 'npc', content: reply, timestamp: Date.now() }])
-  }, [npc, updateSection, callLlm])
+  }, [npc, messages, updateSection, callLlm])
 
   return (
     <div className="flex h-full">
