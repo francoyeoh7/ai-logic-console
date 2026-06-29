@@ -23,6 +23,7 @@ import type {
 import type { ActionCategory } from './types/actions'
 import { wsClient } from './services/websocket'
 import { llmService } from './services/llmService'
+import { generateDialogueStylesFromTraits, getDefaultIntentMappings } from './lib/styleGenerator'
 import { generateGbnfGrammar } from './services/gbnfGenerator'
 
 // ========== Mock Data ==========
@@ -51,6 +52,13 @@ const mockNpcs: NpcPersona[] = [
       { actionType: 'trade', variables: [{ source: 'trait', key: 'greed', weight: 0.5 }, { source: 'relationship', key: 'trust', weight: 0.3 }, { source: 'emotion', key: 'fear', weight: -0.2 }], threshold: 40 },
       { actionType: 'reveal_info', variables: [{ source: 'trait', key: 'loyalty', weight: -0.4 }, { source: 'relationship', key: 'affection', weight: 0.5 }, { source: 'relationship', key: 'trust', weight: 0.3 }], threshold: 60 },
     ],
+    dialogueStyles: generateDialogueStylesFromTraits({ greed: 80, patience: 20, aggression: 60, charisma: 40, loyalty: 70 }),
+    intentMappings: getDefaultIntentMappings().map((m) => {
+      if (m.intent === '交易') return { ...m, weight: 0.7 }
+      if (m.intent === '抱怨') return { ...m, weight: 0.5 }
+      if (m.intent === '打听') return { ...m, weight: 0.4 }
+      return m
+    }),
   },
   {
     id: 'mysterious_merchant',
@@ -71,6 +79,12 @@ const mockNpcs: NpcPersona[] = [
       { actionType: 'trade', variables: [{ source: 'trait', key: 'greed', weight: 0.6 }, { source: 'relationship', key: 'trust', weight: 0.2 }, { source: 'trait', key: 'charisma', weight: 0.2 }], threshold: 35 },
       { actionType: 'reveal_info', variables: [{ source: 'relationship', key: 'affection', weight: 0.4 }, { source: 'trait', key: 'loyalty', weight: -0.3 }], threshold: 55 },
     ],
+    dialogueStyles: generateDialogueStylesFromTraits({ greed: 90, patience: 50, aggression: 10, charisma: 85, loyalty: 15 }),
+    intentMappings: getDefaultIntentMappings().map((m) => {
+      if (m.intent === '交易') return { ...m, weight: 0.8 }
+      if (m.intent === '闲聊') return { ...m, weight: 0.1 }
+      return m
+    }),
   },
   {
     id: 'guard_captain',
@@ -94,6 +108,13 @@ const mockNpcs: NpcPersona[] = [
       { actionType: 'fight', variables: [{ source: 'trait', key: 'loyalty', weight: 0.5 }, { source: 'trait', key: 'aggression', weight: 0.3 }, { source: 'relationship', key: 'trust', weight: -0.2 }], threshold: 50 },
       { actionType: 'reveal_info', variables: [{ source: 'trait', key: 'loyalty', weight: -0.2 }, { source: 'relationship', key: 'trust', weight: 0.6 }], threshold: 70 },
     ],
+    dialogueStyles: generateDialogueStylesFromTraits({ greed: 10, patience: 70, aggression: 50, charisma: 60, loyalty: 95 }),
+    intentMappings: getDefaultIntentMappings().map((m) => {
+      if (m.intent === '警告') return { ...m, weight: 0.7 }
+      if (m.intent === '恭维') return { ...m, weight: 0.1 }
+      if (m.intent === '交易') return { ...m, weight: 0.1 }
+      return m
+    }),
   },
   {
     id: 'alchemist',
@@ -114,6 +135,13 @@ const mockNpcs: NpcPersona[] = [
       { actionType: 'reveal_info', variables: [{ source: 'trait', key: 'patience', weight: 0.3 }, { source: 'relationship', key: 'trust', weight: 0.5 }, { source: 'trait', key: 'charisma', weight: 0.2 }], threshold: 45 },
       { actionType: 'trade', variables: [{ source: 'trait', key: 'greed', weight: -0.4 }, { source: 'relationship', key: 'affection', weight: 0.4 }], threshold: 50 },
     ],
+    dialogueStyles: generateDialogueStylesFromTraits({ greed: 30, patience: 85, aggression: 5, charisma: 50, loyalty: 40 }),
+    intentMappings: getDefaultIntentMappings().map((m) => {
+      if (m.intent === '回忆') return { ...m, weight: 0.6 }
+      if (m.intent === '打听') return { ...m, weight: 0.5 }
+      if (m.intent === '交易') return { ...m, weight: 0.1 }
+      return m
+    }),
   },
 ]
 

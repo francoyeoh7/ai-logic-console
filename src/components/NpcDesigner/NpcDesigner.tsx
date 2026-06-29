@@ -3,6 +3,7 @@ import { NpcProfile } from './NpcProfile'
 import { MemoryPruner } from './MemoryPruner'
 import { NpcTaskList } from './NpcTaskList'
 import { RelationshipPanel } from './RelationshipPanel'
+import { StyleIntentPanel } from './StyleIntentPanel'
 
 export function NpcDesigner() {
   return (
@@ -15,7 +16,7 @@ export function NpcDesigner() {
       </div>
       <div className="w-56 shrink-0 border-r border-neutral-800">
         <div className="flex flex-col h-full">
-          <div className="flex-1 overflow-hidden">
+          <div className="basis-2/5 overflow-hidden">
             <MemoryPruner />
           </div>
           <div className="flex-1 border-t border-neutral-800 overflow-hidden">
@@ -23,8 +24,15 @@ export function NpcDesigner() {
           </div>
         </div>
       </div>
-      <div className="w-60 shrink-0">
-        <NpcTaskList />
+      <div className="w-64 shrink-0">
+        <div className="flex flex-col h-full">
+          <div className="flex-1 overflow-hidden">
+            <NpcTaskList />
+          </div>
+          <div className="basis-2/5 border-t border-neutral-800 overflow-hidden">
+            <StyleIntentPanel />
+          </div>
+        </div>
       </div>
     </div>
   )

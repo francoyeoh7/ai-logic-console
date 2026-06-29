@@ -15,6 +15,19 @@ export interface DailySchedule {
   activity: string
 }
 
+// ========== RimTalk 风格映射 ==========
+export interface DialogueStyle {
+  label: string
+  description: string
+  promptHint: string
+}
+
+export interface IntentMapping {
+  intent: string
+  weight: number
+  description: string
+}
+
 // ========== Crawford 状态变量 ==========
 export interface NpcRelationship {
   targetId: string
@@ -58,6 +71,8 @@ export interface NpcPersona {
   relationships: NpcRelationship[]
   currentEmotion: EmotionState
   inclinationFormulas: InclinationFormula[]
+  dialogueStyles: DialogueStyle[]
+  intentMappings: IntentMapping[]
 }
 
 // ========== Memory ==========
