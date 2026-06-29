@@ -10,7 +10,17 @@ import type {
   TensionDataPoint,
   GlobalConfig,
   ModuleId,
-} from '../types'
+  ActionDefinition,
+  NpcStatusSnapshot,
+  LlmCallLogEntry,
+  GuardrailLogEntry,
+  InterventionLogEntry,
+  ContextSection,
+} from './types'
+import type { ActionCategory } from './types/actions'
+import { wsClient } from './services/websocket'
+import { llmService } from './services/llmService'
+import { generateGbnfGrammar } from './services/gbnfGenerator'
 
 // ========== Mock Data ==========
 const mockNpcs: NpcPersona[] = [
@@ -113,6 +123,121 @@ const mockTensionData: TensionDataPoint[] = Array.from({ length: 60 }, (_, i) =>
   tension: 40 + Math.sin(i / 8) * 25 + Math.random() * 15,
 }))
 
+const mockActions: ActionDefinition[] = [
+  {
+    actionId: 'SHOUT_WARNING',
+    category: 'speech' as ActionCategory,
+    ue5Class: 'UAICommand_ShoutWarning',
+    params: [
+      { name: 'target', type: 'actor', required: true, description: '警告的目标对象' },
+      { name: 'message', type: 'string', required: true, description: '警告内容', constraints: { maxLength: 60 } },
+      { name: 'intensity', type: 'float', required: false, defaultValue: 0.5, description: '警告强度', constraints: { min: 0, max: 1 } },
+    ],
+    preconditions: [
+      { field: 'target.inLineOfSight', operator: 'eq', value: true },
+      { field: 'self.state', operator: 'neq', value: 'SLEEPING' },
+    ],
+    effects: [
+      { targetSystem: 'reputation', mutation: '-5' },
+      { targetSystem: 'alert', mutation: 'notify_guards:15m' },
+    ],
+    interrupt: { interruptible: true, interruptByHigherPriority: true, exclusiveCategories: ['speech'], recoveryTimeMs: 300 },
+    animation: { montage: '/Game/Animations/NPC/AM_Shout', blendIn: 0.15, blendOut: 0.2, loop: false },
+    cooldownMs: 5000,
+  },
+  {
+    actionId: 'FLEE_FROM',
+    category: 'movement' as ActionCategory,
+    ue5Class: 'UAICommand_Flee',
+    params: [
+      { name: 'target', type: 'actor', required: true, description: '逃离的目标' },
+      { name: 'speed', type: 'enum', required: false, defaultValue: 'run', description: '移动速度', constraints: { enumValues: ['walk', 'run', 'sprint'] } },
+    ],
+    preconditions: [
+      { field: 'self.canMove', operator: 'eq', value: true },
+    ],
+    effects: [
+      { targetSystem: 'reputation', mutation: '-10' },
+    ],
+    interrupt: { interruptible: true, interruptByHigherPriority: true, exclusiveCategories: ['movement', 'combat'], recoveryTimeMs: 200 },
+    animation: { montage: '/Game/Animations/NPC/AM_Flee', blendIn: 0.1, blendOut: 0.3, loop: true },
+    cooldownMs: 3000,
+  },
+  {
+    actionId: 'MOVE_TO',
+    category: 'movement' as ActionCategory,
+    ue5Class: 'UAICommand_MoveTo',
+    params: [
+      { name: 'target', type: 'actor', required: true, description: '移动目标' },
+      { name: 'speed', type: 'enum', required: false, defaultValue: 'walk', description: '移动速度', constraints: { enumValues: ['walk', 'run', 'sprint'] } },
+    ],
+    preconditions: [
+      { field: 'self.canMove', operator: 'eq', value: true },
+    ],
+    effects: [],
+    interrupt: { interruptible: true, interruptByHigherPriority: true, exclusiveCategories: ['movement'], recoveryTimeMs: 200 },
+    animation: { montage: '/Game/Animations/NPC/AM_Walk', blendIn: 0.2, blendOut: 0.2, loop: true },
+    cooldownMs: 1000,
+  },
+  {
+    actionId: 'SPEAK',
+    category: 'speech' as ActionCategory,
+    ue5Class: 'UAICommand_Speak',
+    params: [
+      { name: 'target', type: 'actor', required: false, description: '对话目标' },
+      { name: 'message', type: 'string', required: true, description: '对话内容', constraints: { maxLength: 120 } },
+    ],
+    preconditions: [],
+    effects: [],
+    interrupt: { interruptible: true, interruptByHigherPriority: true, exclusiveCategories: ['speech'], recoveryTimeMs: 150 },
+    animation: { montage: '/Game/Animations/NPC/AM_Talk', blendIn: 0.15, blendOut: 0.15, loop: true },
+    cooldownMs: 2000,
+  },
+  {
+    actionId: 'DO_NOTHING',
+    category: 'meta' as ActionCategory,
+    ue5Class: 'UAICommand_Idle',
+    params: [],
+    preconditions: [],
+    effects: [],
+    interrupt: { interruptible: true, interruptByHigherPriority: true, exclusiveCategories: [], recoveryTimeMs: 0 },
+    animation: { montage: '/Game/Animations/NPC/AM_Idle', blendIn: 0.3, blendOut: 0.3, loop: true },
+    cooldownMs: 500,
+  },
+  {
+    actionId: 'OBSERVE',
+    category: 'meta' as ActionCategory,
+    ue5Class: 'UAICommand_Observe',
+    params: [
+      { name: 'target', type: 'actor', required: true, description: '观察目标' },
+    ],
+    preconditions: [
+      { field: 'target.inLineOfSight', operator: 'eq', value: true },
+    ],
+    effects: [],
+    interrupt: { interruptible: true, interruptByHigherPriority: true, exclusiveCategories: [], recoveryTimeMs: 100 },
+    animation: { montage: '/Game/Animations/NPC/AM_LookAt', blendIn: 0.1, blendOut: 0.1, loop: true },
+    cooldownMs: 1000,
+  },
+  {
+    actionId: 'CALL_GUARD',
+    category: 'combat' as ActionCategory,
+    ue5Class: 'UAICommand_CallGuard',
+    params: [
+      { name: 'message', type: 'string', required: false, description: '呼叫内容', constraints: { maxLength: 60 } },
+    ],
+    preconditions: [
+      { field: 'world.hasGuardsNearby', operator: 'eq', value: true },
+    ],
+    effects: [
+      { targetSystem: 'alert', mutation: 'summon_guards' },
+    ],
+    interrupt: { interruptible: false, interruptByHigherPriority: false, exclusiveCategories: ['speech', 'combat'], recoveryTimeMs: 500 },
+    animation: { montage: '/Game/Animations/NPC/AM_Shout', blendIn: 0.1, blendOut: 0.2, loop: false },
+    cooldownMs: 15000,
+  },
+]
+
 // ========== Store ==========
 interface ConfigStore {
   // Navigation
@@ -153,6 +278,38 @@ interface ConfigStore {
 
   // Export
   exportGlobalConfig: () => GlobalConfig
+
+  // Action Registry
+  actionDefinitions: ActionDefinition[]
+  addActionDefinition: (def: ActionDefinition) => void
+  updateActionDefinition: (id: string, def: Partial<ActionDefinition>) => void
+  removeActionDefinition: (id: string) => void
+
+  // WebSocket
+  wsConnected: boolean
+  connectWebSocket: (url?: string) => void
+  disconnectWebSocket: () => void
+  sendWsMessage: (type: string, payload?: Record<string, unknown>) => void
+
+  // Runtime State
+  npcStatuses: NpcStatusSnapshot[]
+  llmCallLogs: LlmCallLogEntry[]
+  guardrailLogs: GuardrailLogEntry[]
+  interventionLogs: InterventionLogEntry[]
+  clearRuntimeLogs: () => void
+
+  // Context Assembly
+  contextSections: ContextSection[]
+  updateContextSection: (id: string, content: string) => void
+  resetContextSections: () => void
+
+  // LLM Call
+  lastLlmResponse: Record<string, unknown> | null
+  lastLlmUsage: { promptTokens: number; completionTokens: number; totalTokens: number } | null
+  isLlmCalling: boolean
+  llmCallError: string | null
+  callLlm: () => Promise<void>
+  checkLlmHealth: () => Promise<boolean>
 }
 
 export const useConfigStore = create<ConfigStore>((set, get) => ({
@@ -276,4 +433,97 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
       },
     }
   },
+
+  // ===== Action Registry =====
+  actionDefinitions: mockActions,
+  addActionDefinition: (def) =>
+    set((s) => ({ actionDefinitions: [...s.actionDefinitions, def] })),
+  updateActionDefinition: (id, partial) =>
+    set((s) => ({
+      actionDefinitions: s.actionDefinitions.map((a) =>
+        a.actionId === id ? { ...a, ...partial } : a
+      ),
+    })),
+  removeActionDefinition: (id) =>
+    set((s) => ({
+      actionDefinitions: s.actionDefinitions.filter((a) => a.actionId !== id),
+    })),
+
+  // ===== WebSocket =====
+  wsConnected: false,
+  connectWebSocket: (url) => {
+    wsClient.connect(url, (connected) => {
+      useConfigStore.setState({ wsConnected: connected })
+    })
+  },
+  disconnectWebSocket: () => wsClient.disconnect(),
+  sendWsMessage: (type, payload) => wsClient.send(type, payload),
+
+  // ===== Runtime State =====
+  npcStatuses: [],
+  llmCallLogs: [],
+  guardrailLogs: [],
+  interventionLogs: [],
+  clearRuntimeLogs: () =>
+    set({ npcStatuses: [], llmCallLogs: [], guardrailLogs: [], interventionLogs: [] }),
+
+  // ===== Context Assembly =====
+  contextSections: [
+    { id: 'A', title: '核心公理 · IMMUTABLE', content: '', tokenBudget: 400, editable: false },
+    { id: 'B', title: '最近记忆 · RECENT', content: '', tokenBudget: 600, editable: false },
+    { id: 'C', title: '当前感知 · NOW', content: '', tokenBudget: 400, editable: true },
+    { id: 'D', title: '可用行为 · TOOLKIT', content: '', tokenBudget: 400, editable: false },
+  ],
+  updateContextSection: (id, content) =>
+    set((s) => ({
+      contextSections: s.contextSections.map((sec) =>
+        sec.id === id ? { ...sec, content } : sec
+      ),
+    })),
+  resetContextSections: () =>
+    set({
+      contextSections: [
+        { id: 'A', title: '核心公理 · IMMUTABLE', content: '', tokenBudget: 400, editable: false },
+        { id: 'B', title: '最近记忆 · RECENT', content: '', tokenBudget: 600, editable: false },
+        { id: 'C', title: '当前感知 · NOW', content: '', tokenBudget: 400, editable: true },
+        { id: 'D', title: '可用行为 · TOOLKIT', content: '', tokenBudget: 400, editable: false },
+      ],
+    }),
+
+  // ===== LLM Call =====
+  lastLlmResponse: null,
+  lastLlmUsage: null,
+  isLlmCalling: false,
+  llmCallError: null,
+  callLlm: async () => {
+    const s = useConfigStore.getState()
+    const systemPrompt = s.contextSections
+      .map((sec) => `[SECTION ${sec.id}: ${sec.title}]\n${sec.content}`)
+      .join('\n\n')
+
+    const grammar = generateGbnfGrammar(s.actionDefinitions)
+
+    set({ isLlmCalling: true, llmCallError: null })
+
+    try {
+      const result = await llmService.chatCompletion({
+        systemPrompt,
+        grammar,
+        temperature: 0.7,
+        maxTokens: 256,
+      })
+
+      set({
+        lastLlmResponse: result.json,
+        lastLlmUsage: result.usage,
+        isLlmCalling: false,
+      })
+    } catch (e) {
+      set({
+        isLlmCalling: false,
+        llmCallError: e instanceof Error ? e.message : 'Unknown error',
+      })
+    }
+  },
+  checkLlmHealth: () => llmService.healthCheck(),
 }))
