@@ -31,7 +31,15 @@ export function ConversationSandbox() {
 NPC: ${npc.name} (id:${npc.id})
 Perceived: player (distance:2m, speaking:true)
 Recent player message: "${text}"
-Available actions: SPEAK, OBSERVE, DO_NOTHING`)
+
+You MUST output a JSON object with these fields:
+- action: must be one of [SPEAK, OBSERVE, DO_NOTHING]
+- params: object with action-specific parameters. For SPEAK: {"target":"player","message":"你的回复内容"}
+- emotion: one of [neutral,happy,sad,angry,fearful,surprised,disgusted]
+- priority: float 0.0-1.0 (urgency)
+- reasoning: short reason string
+
+Example: {"action":"SPEAK","params":{"target":"player","message":"哦，是你啊。今天想打听什么？"},"emotion":"neutral","priority":0.3,"reasoning":"greeting_player"}`)
 
     await callLlm()
     const resp = useConfigStore.getState().lastLlmResponse
