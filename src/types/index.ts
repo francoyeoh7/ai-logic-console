@@ -91,4 +91,66 @@ export interface GlobalConfig {
 }
 
 // ========== Navigation ==========
-export type ModuleId = 'persona' | 'guardrails' | 'eventbus' | 'director'
+export type ModuleId = 'persona' | 'guardrails' | 'eventbus' | 'director' | 'context' | 'sandbox'
+
+// ========== WebSocket & Runtime ==========
+export interface WebSocketMessage {
+  type: string
+  seq: number
+  timestamp: number
+  payload: Record<string, unknown>
+}
+
+export interface NpcStatusSnapshot {
+  npcId: string
+  action: string
+  emotion: string
+  state: string
+}
+
+export interface LlmCallLogEntry {
+  npcId: string
+  promptTokens: number
+  completionTokens: number
+  latencyMs: number
+  actionOutput: string
+  success: boolean
+  timestamp: number
+}
+
+export interface GuardrailLogEntry {
+  ruleId: string
+  input: string
+  interceptedAction: string
+  timestamp: number
+}
+
+export interface InterventionLogEntry {
+  reason: string
+  selectedEvent: string
+  result: string
+  timestamp: number
+}
+
+export interface RuntimeState {
+  connected: boolean
+  npcStatuses: NpcStatusSnapshot[]
+  llmCallLogs: LlmCallLogEntry[]
+  guardrailLogs: GuardrailLogEntry[]
+  interventionLogs: InterventionLogEntry[]
+}
+
+// ========== Context Assembly ==========
+export interface ContextSection {
+  id: 'A' | 'B' | 'C' | 'D'
+  title: string
+  content: string
+  tokenBudget: number
+  editable: boolean
+}
+
+export interface ContextAssembly {
+  sections: ContextSection[]
+  totalTokens: number
+  budget: number
+}
