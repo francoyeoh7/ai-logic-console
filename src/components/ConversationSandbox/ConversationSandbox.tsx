@@ -4,6 +4,7 @@ import { ChatPanel, type Message } from './ChatPanel'
 import { ResponseInspector } from './ResponseInspector'
 import { NpcIdentityCard } from './NpcIdentityCard'
 import { compileNpcIdentity } from '../../lib/npcIdentityCompiler'
+import { RefreshCw } from 'lucide-react'
 
 export function ConversationSandbox() {
   const npcs = useConfigStore((s) => s.npcs)
@@ -17,22 +18,34 @@ export function ConversationSandbox() {
   const npc = npcs.find((n) => n.id === selectedId)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
-  const [identityCompiled, setIdentityCompiled] = useState(false)
   const identityRef = useRef<string>('')
+
+  const reloadIdentity = useCallback(() => {
+    if (!npc) return
+    const compiled = compileNpcIdentity(npc, quests)
+    identityRef.current = compiled
+    updateSection('A', compiled)
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: 'npc',
+        content: `—— 人格画像已重新装载 ——\n\n${npc.name} 当前配置已更新。继续对话将使用最新设定。`,
+        timestamp: Date.now(),
+      },
+    ])
+  }, [npc, quests, updateSection])
 
   useEffect(() => {
     if (npc) {
       const compiled = compileNpcIdentity(npc, quests)
       identityRef.current = compiled
       updateSection('A', compiled)
-      setIdentityCompiled(true)
       setMessages([{
         role: 'npc',
-        content: `*${npc.name} 的人格画像已编译完成*\n\n性格: ${Object.entries(npc.traits).map(([k,v])=>`${k}=${v}`).join(', ')}\n风格: ${(npc.dialogueStyles??[]).map(s=>s.label).join(', ')||'无'}\n关系: ${(npc.relationships??[]).length} 条\n任务: ${quests.filter(q=>q.involvedNpcs.some(i=>i.npcId===npc.id)).length} 个\n\n—— 现在开始对话测试 ——`,
+        content: `*${npc.name} 的人格画像已编译完成*\n\n性格: ${Object.entries(npc.traits).map(([k,v])=>`${k}=${v}`).join(', ')}\n风格: ${(npc.dialogueStyles??[]).map(s=>s.label).join(', ')||'无'}\n关系: ${(npc.relationships??[]).length} 条\n任务: ${quests.filter(q=>q.involvedNpcs.some(i=>i.npcId===npc.id)).length} 个\n\n—— 开始对话测试 ——`,
         timestamp: Date.now(),
       }])
     } else {
-      setIdentityCompiled(false)
       identityRef.current = ''
     }
   }, [npc?.id])
@@ -85,15 +98,30 @@ export function ConversationSandbox() {
         </div>
       </div>
 
-      <div className="flex-1">
-        <ChatPanel
-          npcName={npc?.name ?? '选择 NPC'}
-          messages={messages}
-          onSend={handleSend}
-          isProcessing={isCalling}
-          input={input}
-          setInput={setInput}
-        />
+      <div className="flex-1 flex flex-col">
+        <div className="flex items-center justify-between border-b border-neutral-800 px-4 py-2">
+          <span className="text-[10px] text-neutral-500">
+            人格画像: {npc ? `${(npc.dialogueStyles??[]).length} 风格 · ${(npc.relationships??[]).length} 关系 · ${quests.filter(q=>q.involvedNpcs.some(i=>i.npcId===npc.id)).length} 任务` : '—'}
+          </span>
+          <button
+            onClick={reloadIdentity}
+            disabled={isCalling || !npc}
+            className="flex items-center gap-1 rounded border border-neutral-700 px-2 py-1 text-[10px] text-neutral-400 hover:bg-neutral-800/50 hover:text-neutral-200 disabled:opacity-50"
+          >
+            <RefreshCw className="h-3 w-3" />
+            重新装载
+          </button>
+        </div>
+        <div className="flex-1">
+          <ChatPanel
+            npcName={npc?.name ?? '选择 NPC'}
+            messages={messages}
+            onSend={handleSend}
+            isProcessing={isCalling}
+            input={input}
+            setInput={setInput}
+          />
+        </div>
       </div>
 
       <div className="w-64 shrink-0 border-l border-neutral-800 overflow-y-auto">
