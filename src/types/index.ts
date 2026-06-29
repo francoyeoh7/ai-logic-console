@@ -166,7 +166,6 @@ export interface QuestDefinition {
   id: string
   name: string
   category: 'main' | 'side' | 'ai_dynamic'
-  status: 'draft' | 'active' | 'completed' | 'locked'
   minLevel: number
   maxLevel: number
   prerequisiteQuestId?: string

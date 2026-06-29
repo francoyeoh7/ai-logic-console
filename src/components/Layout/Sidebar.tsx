@@ -6,8 +6,8 @@ const navItems: { id: ModuleId; label: string; icon: typeof FlaskConical }[] = [
   { id: 'guardrails', label: '护栏与公理', icon: Shield },
   { id: 'npc_designer', label: 'NPC 设定', icon: Users },
   { id: 'quest_network', label: '任务网络图', icon: GitBranch },
-  { id: 'quest_editor', label: '任务编排台', icon: Edit3 },
-  { id: 'director', label: '导演控制台', icon: Activity },
+  { id: 'quest_editor', label: '任务编排', icon: Edit3 },
+  { id: 'director', label: '导演规则', icon: Activity },
   { id: 'context', label: '上下文编辑器', icon: Puzzle },
   { id: 'sandbox', label: '对话沙盒', icon: MessageSquare },
 ]

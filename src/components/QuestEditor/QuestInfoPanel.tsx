@@ -38,19 +38,6 @@ export function QuestInfoPanel({ quest }: Props) {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-[10px] text-neutral-500">状态</label>
-          <select
-            value={quest.status}
-            onChange={(e) => updateQuest(quest.id, { status: e.target.value as typeof quest.status })}
-            className="w-full rounded border border-neutral-700 bg-neutral-800 px-2 py-1.5 text-xs text-neutral-200"
-          >
-            <option value="draft">草稿</option>
-            <option value="active">进行中</option>
-            <option value="completed">已完成</option>
-            <option value="locked">锁定</option>
-          </select>
-        </div>
-        <div>
           <label className="mb-1 block text-[10px] text-neutral-500">最低等级</label>
           <input type="number" value={quest.minLevel} onChange={(e) => updateQuest(quest.id, { minLevel: Number(e.target.value) })} className="w-full rounded border border-neutral-700 bg-neutral-800 px-2 py-1.5 text-xs text-neutral-200" />
         </div>

@@ -38,7 +38,7 @@ export function QuestNetwork() {
         id: `quest-${q.id}`,
         type: 'mainQuest',
         position: { x: 200, y },
-        data: { label: q.name, status: q.status, summary: `Lv.${q.minLevel}-${q.maxLevel}` },
+        data: { label: q.name, summary: `Lv.${q.minLevel}-${q.maxLevel}`, prerequisite: q.prerequisiteQuestId ? `需要完成前一章` : undefined },
       })
       if (i > 0 && mainQuests[i - 1].prerequisiteQuestId === q.id) {
         e.push({ id: `e-main-${i}`, source: `quest-${q.id}`, target: `quest-${mainQuests[i - 1].id}`, animated: true, style: { stroke: '#ef4444' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' } })

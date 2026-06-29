@@ -26,7 +26,7 @@ export function EventInjectionPool() {
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h3 className="text-xs font-semibold text-neutral-300">干预事件池</h3>
-          <p className="text-[10px] text-neutral-500">手动注入突发事件 · 测试游戏内表现</p>
+          <p className="text-[10px] text-neutral-500">导演可在运行时从池中挑选事件</p>
         </div>
         <div className="flex items-center gap-2">
           <Zap className="h-3.5 w-3.5 text-yellow-500" />
@@ -57,12 +57,6 @@ export function EventInjectionPool() {
                 <span className={`text-[10px] font-mono ${event.tensionEffect >= 0 ? 'text-red-400' : 'text-blue-400'}`}>
                   张力 {event.tensionEffect >= 0 ? '+' : ''}{event.tensionEffect}
                 </span>
-                <button
-                  onClick={() => injectEvent(event.id)}
-                  className="rounded border border-primary/30 bg-primary/10 px-2.5 py-1 text-[10px] text-primary hover:bg-primary/20 transition-colors"
-                >
-                  立刻注入
-                </button>
               </div>
             </div>
           )
