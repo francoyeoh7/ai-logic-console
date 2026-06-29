@@ -1,8 +1,7 @@
-const LLM_BASE = 'http://localhost:8080/v1'
+const LLM_BASE = 'http://localhost:11434/v1'
 
 interface ChatCompletionRequest {
   systemPrompt: string
-  grammar?: string
   temperature?: number
   maxTokens?: number
 }
@@ -20,18 +19,15 @@ interface EmbeddingResponse {
 export const llmService = {
   async chatCompletion(req: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     const body: Record<string, unknown> = {
+      model: 'qwen2.5:7b',
       messages: [
         { role: 'system', content: req.systemPrompt },
         { role: 'user', content: 'Respond to the current situation. Output a JSON action command.' },
       ],
       temperature: req.temperature ?? 0.7,
-      top_p: 0.9,
       max_tokens: req.maxTokens ?? 256,
       stream: false,
-    }
-
-    if (req.grammar) {
-      body.grammar = req.grammar
+      format: 'json',
     }
 
     const res = await fetch(`${LLM_BASE}/chat/completions`, {
@@ -68,7 +64,7 @@ export const llmService = {
     const res = await fetch(`${LLM_BASE}/embeddings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ input: text }),
+      body: JSON.stringify({ input: text, model: 'qwen2.5:7b' }),
     })
 
     if (!res.ok) {
@@ -89,6 +85,7 @@ export const llmService = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          model: 'qwen2.5:7b',
           messages: [{ role: 'user', content: 'ping' }],
           max_tokens: 1,
         }),

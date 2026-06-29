@@ -501,14 +501,11 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
       .map((sec) => `[SECTION ${sec.id}: ${sec.title}]\n${sec.content}`)
       .join('\n\n')
 
-    const grammar = generateGbnfGrammar(s.actionDefinitions)
-
     set({ isLlmCalling: true, llmCallError: null })
 
     try {
       const result = await llmService.chatCompletion({
         systemPrompt,
-        grammar,
         temperature: 0.7,
         maxTokens: 256,
       })
