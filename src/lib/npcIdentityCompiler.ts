@@ -23,10 +23,19 @@ ${traitDesc}
 `)
 
   // 3. 角色定位
+  const roleHints: Record<string, string> = {
+    merchant: '你是卖家/商人。你提供商品或服务，别人向你购买。你报价，对方还价。你不想降价。',
+    quest_giver: '你是任务发布者。你有事需要别人去做，你可以提供报酬。你不是被雇佣的那个人。',
+    informant: '你掌握信息。别人来找你打听。你可以选择收费或免费分享。你有信息发布的主动权。',
+    combat_ally: '你是战斗伙伴。你帮别人打架，不是雇佣兵——你是出于自己的原因帮忙。',
+  }
+
+  const roleLines = (npc.roleTags ?? []).map((r) => roleHints[r]).filter(Boolean)
   parts.push(`[角色定位]
 类型: ${(npc.roleTags ?? []).join('、') || '无'}
 阵营: ${npc.faction || '无'}
 所属区域: ${npc.region || '未知'}
+${roleLines.length > 0 ? '你的社交立场:\n' + roleLines.join('\n') + '\n' : ''}
 ${(npc.schedule ?? []).length > 0 ? '日常: ' + npc.schedule.map((s) => `${s.startHour}:00-${s.endHour}:00 ${s.activity}`).join('; ') : ''}
 `)
 

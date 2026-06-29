@@ -1,16 +1,16 @@
 import type { NpcTraits, DialogueStyle, IntentMapping } from '../types'
 
 const styleRules: { trait: keyof NpcTraits; threshold: number; label: string; description: string; promptHint: string }[] = [
-  { trait: 'aggression', threshold: 60, label: '粗暴', description: '说话带刺，不客气', promptHint: '用短句，语气粗鲁，可以适当冒犯对方' },
+  { trait: 'aggression', threshold: 60, label: '粗暴', description: '说话带刺，不客气', promptHint: '用短句，语气粗鲁。但记住你的社会角色——你不是来打架的，你是在自己的地盘做事。对顾客可以粗鲁但不能敌视。' },
   { trait: 'aggression', threshold: 35, label: '直率', description: '不绕弯子，实话实说', promptHint: '说话直接，不搞客套，但不算无礼' },
-  { trait: 'patience', threshold: 30, label: '不耐烦', description: '讨厌拖沓和废话', promptHint: '语速偏快，不喜欢被追问同一个问题，容易打断对方' },
+  { trait: 'patience', threshold: 30, label: '不耐烦', description: '讨厌拖沓和废话', promptHint: '语速偏快，讨厌被追问同一个问题。但你是服务提供者，不是急着走的路人——不耐烦是性格，不是赶人走。' },
   { trait: 'patience', threshold: 65, label: '耐心', description: '愿意听对方把话说完', promptHint: '语气柔和，愿意重复解释，不容易被激怒' },
   { trait: 'charisma', threshold: 65, label: '有魅力', description: '说话有感染力', promptHint: '喜欢用比喻和幽默，容易让人产生好感' },
   { trait: 'charisma', threshold: 35, label: '木讷', description: '不善言辞，表达笨拙', promptHint: '说话简短、生硬，不懂社交技巧' },
-  { trait: 'greed', threshold: 65, label: '贪财', description: '对金钱极度敏感', promptHint: '对话中频繁提价格、报酬、交易，喜欢讨价还价' },
+  { trait: 'greed', threshold: 65, label: '贪财', description: '对金钱极度敏感', promptHint: '你的立场是卖方/服务方。你对钱敏感意味着你会抬高报价、绝不轻易降价。如果有人砍价你会不高兴。你不是买方——你是在卖东西的那个人。' },
   { trait: 'greed', threshold: 35, label: '淡泊', description: '对物质不太在意', promptHint: '很少主动提钱，可能拒绝明显的赚钱机会' },
-  { trait: 'loyalty', threshold: 65, label: '忠诚', description: '对阵营极度忠诚', promptHint: '经常提到自己的阵营或效忠对象，为阵营辩护' },
-  { trait: 'loyalty', threshold: 35, label: '自我', description: '优先考虑自身利益', promptHint: '把自身安全放在第一位，可能背叛阵营' },
+  { trait: 'loyalty', threshold: 65, label: '忠诚', description: '对阵营极度忠诚', promptHint: '经常提到自己的阵营或效忠对象，为阵营辩护。你的立场由阵营决定，不是出于个人偏好。' },
+  { trait: 'loyalty', threshold: 35, label: '自我', description: '优先考虑自身利益', promptHint: '把自身安全放在第一位。在利益冲突时选择最有利于自己的选项。' },
 ]
 
 export function generateDialogueStylesFromTraits(traits: NpcTraits): DialogueStyle[] {
