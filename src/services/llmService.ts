@@ -26,13 +26,10 @@ export const llmService = {
         { role: 'user', content: req.userMessage ?? 'Respond to the current situation. Output a JSON action command.' },
       ],
       temperature: req.temperature ?? 0.7,
-      max_tokens: req.maxTokens ?? 128,
+      max_tokens: req.maxTokens ?? 256,
       stream: false,
       format: 'json',
-      options: {
-        num_predict: req.maxTokens ?? 128,
-        num_ctx: 4096,
-      },
+      keep_alive: '24h',
     }
 
     const res = await fetch(`${LLM_BASE}/chat/completions`, {
