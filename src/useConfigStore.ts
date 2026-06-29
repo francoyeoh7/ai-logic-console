@@ -16,6 +16,9 @@ import type {
   GuardrailLogEntry,
   InterventionLogEntry,
   ContextSection,
+  NpcRole,
+  QuestDefinition,
+  QuestNode,
 } from './types'
 import type { ActionCategory } from './types/actions'
 import { wsClient } from './services/websocket'
@@ -30,6 +33,14 @@ const mockNpcs: NpcPersona[] = [
     basePrompt: '你是一个脾气暴躁的老头，在乱世中经营着一家破旧的酒馆。你讨厌闹事者，但对真正的英雄怀有敬意。你说话粗鲁但心地善良。',
     traits: { greed: 80, patience: 20, aggression: 60, charisma: 40, loyalty: 70 },
     pinnedMemories: ['mem-001', 'mem-002'],
+    roleTags: ['merchant', 'informant'] as NpcRole[],
+    faction: '风语镇',
+    region: '风语镇 · 酒馆',
+    schedule: [
+      { startHour: 6, endHour: 8, activity: '起床/用餐' },
+      { startHour: 8, endHour: 22, activity: '营业中' },
+      { startHour: 22, endHour: 6, activity: '休息' },
+    ],
   },
   {
     id: 'mysterious_merchant',
@@ -37,6 +48,10 @@ const mockNpcs: NpcPersona[] = [
     basePrompt: '你是一个来历不明的游商，行踪飘忽。你对稀有物品有着近乎痴迷的执着，总是用谜语般的话语与人交谈。你从不透露自己的过去。',
     traits: { greed: 90, patience: 50, aggression: 10, charisma: 85, loyalty: 15 },
     pinnedMemories: ['mem-003'],
+    roleTags: ['merchant'] as NpcRole[],
+    faction: '无',
+    region: '各地游走',
+    schedule: [{ startHour: 10, endHour: 22, activity: '游商活动' }],
   },
   {
     id: 'guard_captain',
@@ -44,6 +59,13 @@ const mockNpcs: NpcPersona[] = [
     basePrompt: '你是王城的卫队长，严肃、正直、一丝不苟。你对法律有着绝对的忠诚，但内心深处也明白世道的不公。你不会被贿赂，但可能被正义的理由说服。',
     traits: { greed: 10, patience: 70, aggression: 50, charisma: 60, loyalty: 95 },
     pinnedMemories: [],
+    roleTags: ['quest_giver', 'combat_ally'] as NpcRole[],
+    faction: '风语镇守卫',
+    region: '风语镇 · 城门',
+    schedule: [
+      { startHour: 6, endHour: 18, activity: '站岗巡逻' },
+      { startHour: 18, endHour: 6, activity: '休息' },
+    ],
   },
   {
     id: 'alchemist',
@@ -51,6 +73,10 @@ const mockNpcs: NpcPersona[] = [
     basePrompt: '你是一个隐居的炼金术士，痴迷于知识的探索。你对来访者既警惕又好奇，渴望有人能理解你的研究。你说话充满学术用语。',
     traits: { greed: 30, patience: 85, aggression: 5, charisma: 50, loyalty: 40 },
     pinnedMemories: ['mem-004'],
+    roleTags: ['quest_giver', 'informant'] as NpcRole[],
+    faction: '无',
+    region: '希尔的小屋',
+    schedule: [{ startHour: 0, endHour: 24, activity: '研究中(随时可访问)' }],
   },
 ]
 
@@ -238,6 +264,96 @@ const mockActions: ActionDefinition[] = [
   },
 ]
 
+const mockQuests: QuestDefinition[] = [
+  {
+    id: 'quest_wolves_ch1',
+    name: '第一章 · 北境狼患',
+    category: 'main',
+    status: 'active',
+    minLevel: 3,
+    maxLevel: 20,
+    nodes: [
+      { id: 'qw1_n1', questId: 'quest_wolves_ch1', name: '接取任务', type: 'dialogue', order: 0, triggerNpcId: 'guard_captain', triggerLocation: '城门守卫站', dialogueText: '北边的狼群越来越猖獗了。你有兴趣处理吗？', completionCondition: 'dialogue:accept', nextNodeId: 'qw1_n2', isOptional: false, rewards: [] },
+      { id: 'qw1_n2', questId: 'quest_wolves_ch1', name: '收集线索', type: 'dialogue', order: 1, triggerNpcId: 'tavern_keeper', triggerLocation: '酒馆', dialogueText: '狼？北边老林子里到处都是。最近有头特别大的……', completionCondition: 'dialogue:complete', nextNodeId: 'qw1_n3', isOptional: false, rewards: [{ type: 'exp', value: '200' }] },
+      { id: 'qw1_n3', questId: 'quest_wolves_ch1', name: '击败狼王', type: 'combat', order: 2, triggerLocation: '北境密林', combatTarget: 'wolf_alpha', completionCondition: 'combat:kill:wolf_alpha', nextNodeId: 'qw1_n4', isOptional: false, rewards: [{ type: 'gold', value: '300' }, { type: 'exp', value: '500' }, { type: 'item', value: 'wolf_fang', detail: '狼王之牙' }] },
+      { id: 'qw1_n4', questId: 'quest_wolves_ch1', name: '交任务', type: 'dialogue', order: 3, triggerNpcId: 'guard_captain', triggerLocation: '城门守卫站', dialogueText: '干得漂亮！这是你的报酬。', completionCondition: 'dialogue:complete', isOptional: false, rewards: [{ type: 'gold', value: '500' }, { type: 'exp', value: '800' }, { type: 'reputation', value: '50', detail: '风语镇' }] },
+    ],
+    involvedNpcs: [
+      { npcId: 'guard_captain', role: 'issuer' },
+      { npcId: 'tavern_keeper', role: 'informant' },
+    ],
+  },
+  {
+    id: 'quest_dragon_ch2',
+    name: '第二章 · 龙的预兆',
+    category: 'main',
+    status: 'locked',
+    minLevel: 8,
+    maxLevel: 30,
+    prerequisiteQuestId: 'quest_wolves_ch1',
+    nodes: [
+      { id: 'qd2_n1', questId: 'quest_dragon_ch2', name: '接取任务', type: 'dialogue', order: 0, triggerNpcId: 'alchemist', triggerLocation: '希尔的小屋', dialogueText: '狼群异常…我怀疑是更深层的原因。听说过「龙兆」吗？', completionCondition: 'dialogue:accept', nextNodeId: 'qd2_n2', isOptional: false, rewards: [] },
+      { id: 'qd2_n2', questId: 'quest_dragon_ch2', name: '探索龙脉遗迹', type: 'explore', order: 1, triggerLocation: '龙脊山脉', completionCondition: 'explore:dragon_ruins', isOptional: false, rewards: [{ type: 'exp', value: '400' }, { type: 'item', value: 'dragon_scale_fragment', detail: '龙鳞碎片' }] },
+    ],
+    involvedNpcs: [
+      { npcId: 'alchemist', role: 'issuer' },
+      { npcId: 'mysterious_merchant', role: 'informant' },
+    ],
+  },
+  {
+    id: 'quest_shadow_ch3',
+    name: '第三章 · 王城的阴影',
+    category: 'main',
+    status: 'locked',
+    minLevel: 14,
+    maxLevel: 50,
+    prerequisiteQuestId: 'quest_dragon_ch2',
+    nodes: [],
+    involvedNpcs: [{ npcId: 'guard_captain', role: 'issuer' }],
+  },
+  {
+    id: 'quest_han_secret',
+    name: '支线 · 老韩的私藏',
+    category: 'side',
+    status: 'active',
+    minLevel: 3,
+    maxLevel: 20,
+    nodes: [
+      { id: 'qhs_n1', questId: 'quest_han_secret', name: '触发信任', type: 'dialogue', order: 0, triggerNpcId: 'tavern_keeper', dialogueText: '你帮了我不少…好吧，告诉你个秘密。柜台下有瓶二十年陈酿，帮我拿给守墓人。', completionCondition: 'dialogue:accept', nextNodeId: 'qhs_n2', isOptional: false, rewards: [] },
+      { id: 'qhs_n2', questId: 'quest_han_secret', name: '递送陈酿', type: 'deliver', order: 1, triggerLocation: '风语镇 · 墓园', completionCondition: 'deliver:aged_wine', isOptional: false, rewards: [{ type: 'gold', value: '200' }, { type: 'item', value: 'ancient_amulet', detail: '古老护身符' }, { type: 'reputation', value: '30', detail: '风语镇' }] },
+    ],
+    involvedNpcs: [{ npcId: 'tavern_keeper', role: 'issuer' }],
+  },
+  {
+    id: 'ai_tavern_gossip',
+    name: 'AI · 随机酒馆闲谈',
+    category: 'ai_dynamic',
+    status: 'active',
+    minLevel: 1,
+    maxLevel: 100,
+    nodes: [],
+    involvedNpcs: [{ npcId: 'tavern_keeper', role: 'informant' }],
+    aiSettings: {
+      triggerConditions: { npcAffectionMin: 30, playerLevelMin: 3, requiredRegion: '风语镇' },
+      triggerFrequency: { min: 3, max: 8, unit: 'visit' },
+      triggerChance: 60,
+      questCategory: 'collect',
+      targetCountRange: { min: 2, max: 5 },
+      targetRegion: '风语镇周边',
+      rewardBoundaries: {
+        gold: { min: 50, max: 200 },
+        exp: { min: 100, max: 400 },
+        reputation: { faction: '风语镇', min: 5, max: 20 },
+      },
+      rareRewardChance: 15,
+      rareRewardPool: [
+        { itemId: 'wolf_fang_necklace', weight: 1 },
+        { itemId: 'ancient_map_fragment', weight: 2 },
+      ],
+    },
+  },
+]
+
 // ========== Store ==========
 interface ConfigStore {
   // Navigation
@@ -310,6 +426,17 @@ interface ConfigStore {
   llmCallError: string | null
   callLlm: () => Promise<void>
   checkLlmHealth: () => Promise<boolean>
+
+  // Quest System
+  questDefinitions: QuestDefinition[]
+  selectedQuestId: string | null
+  selectQuest: (id: string) => void
+  addQuest: (quest: QuestDefinition) => void
+  updateQuest: (id: string, partial: Partial<QuestDefinition>) => void
+  removeQuest: (id: string) => void
+  addQuestNode: (questId: string, node: QuestNode) => void
+  updateQuestNode: (questId: string, nodeId: string, partial: Partial<QuestNode>) => void
+  removeQuestNode: (questId: string, nodeId: string) => void
 }
 
 export const useConfigStore = create<ConfigStore>((set, get) => ({
@@ -523,4 +650,36 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
     }
   },
   checkLlmHealth: () => llmService.healthCheck(),
+
+  // ===== Quest System =====
+  questDefinitions: mockQuests,
+  selectedQuestId: null,
+  selectQuest: (id) => set({ selectedQuestId: id }),
+  addQuest: (quest) => set((s) => ({ questDefinitions: [...s.questDefinitions, quest] })),
+  updateQuest: (id, partial) =>
+    set((s) => ({
+      questDefinitions: s.questDefinitions.map((q) => (q.id === id ? { ...q, ...partial } : q)),
+    })),
+  removeQuest: (id) =>
+    set((s) => ({ questDefinitions: s.questDefinitions.filter((q) => q.id !== id) })),
+  addQuestNode: (questId, node) =>
+    set((s) => ({
+      questDefinitions: s.questDefinitions.map((q) =>
+        q.id === questId ? { ...q, nodes: [...q.nodes, node].sort((a, b) => a.order - b.order) } : q
+      ),
+    })),
+  updateQuestNode: (questId, nodeId, partial) =>
+    set((s) => ({
+      questDefinitions: s.questDefinitions.map((q) =>
+        q.id === questId
+          ? { ...q, nodes: q.nodes.map((n) => (n.id === nodeId ? { ...n, ...partial } : n)) }
+          : q
+      ),
+    })),
+  removeQuestNode: (questId, nodeId) =>
+    set((s) => ({
+      questDefinitions: s.questDefinitions.map((q) =>
+        q.id === questId ? { ...q, nodes: q.nodes.filter((n) => n.id !== nodeId) } : q
+      ),
+    })),
 }))

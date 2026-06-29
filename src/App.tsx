@@ -1,16 +1,18 @@
 import { useConfigStore } from './useConfigStore'
 import { Sidebar } from './components/Layout/Sidebar'
-import { PersonaForge } from './components/PersonaForge/PersonaForge'
+import { NpcDesigner } from './components/NpcDesigner/NpcDesigner'
 import { Guardrails } from './components/Guardrails/Guardrails'
-import { EventBusVisualizer } from './components/EventBus/EventBusVisualizer'
+import { QuestNetwork } from './components/QuestNetwork/QuestNetwork'
+import { QuestEditor } from './components/QuestEditor/QuestEditor'
 import { DirectorDashboard } from './components/DirectorDashboard/DirectorDashboard'
 import { ContextComposer } from './components/ContextComposer/ContextComposer'
 import { ConversationSandbox } from './components/ConversationSandbox/ConversationSandbox'
 
 const modules = {
-  persona: PersonaForge,
+  npc_designer: NpcDesigner,
   guardrails: Guardrails,
-  eventbus: EventBusVisualizer,
+  quest_network: QuestNetwork,
+  quest_editor: QuestEditor,
   director: DirectorDashboard,
   context: ContextComposer,
   sandbox: ConversationSandbox,

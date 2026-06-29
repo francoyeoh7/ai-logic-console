@@ -7,12 +7,24 @@ export interface NpcTraits {
   loyalty: number
 }
 
+export type NpcRole = 'merchant' | 'quest_giver' | 'informant' | 'combat_ally' | 'artisan' | 'official'
+
+export interface DailySchedule {
+  startHour: number
+  endHour: number
+  activity: string
+}
+
 export interface NpcPersona {
   id: string
   name: string
   basePrompt: string
   traits: NpcTraits
   pinnedMemories: string[]
+  roleTags: NpcRole[]
+  faction: string
+  region: string
+  schedule: DailySchedule[]
 }
 
 // ========== Memory ==========
@@ -41,7 +53,7 @@ export interface GuardrailAxiom {
   enabled: boolean
 }
 
-// ========== Event Routing ==========
+// ========== Event Routing (保留接口兼容) ==========
 export interface EventRoute {
   targetSystem: string
   mutation: string
@@ -49,6 +61,70 @@ export interface EventRoute {
 
 export interface EventRoutingMap {
   [eventType: string]: EventRoute[]
+}
+
+// ========== Quest System ==========
+export interface QuestReward {
+  type: 'gold' | 'exp' | 'reputation' | 'item'
+  value: string
+  detail?: string
+}
+
+export interface QuestNode {
+  id: string
+  questId: string
+  name: string
+  type: 'dialogue' | 'combat' | 'collect' | 'escort' | 'explore' | 'deliver' | 'trigger'
+  order: number
+  triggerNpcId?: string
+  triggerLocation?: string
+  dialogueText?: string
+  combatTarget?: string
+  collectItems?: { itemId: string; count: number }[]
+  completionCondition: string
+  nextNodeId?: string
+  isOptional: boolean
+  rewards: QuestReward[]
+}
+
+export interface QuestInvolvedNpc {
+  npcId: string
+  role: string
+}
+
+export interface AiQuestSettings {
+  triggerConditions: {
+    npcAffectionMin?: number
+    playerLevelMin?: number
+    requiredItems?: string[]
+    requiredFlags?: string[]
+    requiredRegion?: string
+  }
+  triggerFrequency: { min: number; max: number; unit: 'visit' | 'minutes' }
+  triggerChance: number
+  questCategory: 'collect' | 'combat' | 'deliver' | 'escort' | 'explore'
+  targetCountRange: { min: number; max: number }
+  targetRegion: string
+  rewardBoundaries: {
+    gold: { min: number; max: number }
+    exp: { min: number; max: number }
+    reputation: { faction: string; min: number; max: number }
+  }
+  rareRewardChance: number
+  rareRewardPool: { itemId: string; weight: number }[]
+}
+
+export interface QuestDefinition {
+  id: string
+  name: string
+  category: 'main' | 'side' | 'ai_dynamic'
+  status: 'draft' | 'active' | 'completed' | 'locked'
+  minLevel: number
+  maxLevel: number
+  prerequisiteQuestId?: string
+  nodes: QuestNode[]
+  involvedNpcs: QuestInvolvedNpc[]
+  aiSettings?: AiQuestSettings
 }
 
 // ========== Director AI ==========
@@ -91,7 +167,7 @@ export interface GlobalConfig {
 }
 
 // ========== Navigation ==========
-export type ModuleId = 'persona' | 'guardrails' | 'eventbus' | 'director' | 'context' | 'sandbox'
+export type ModuleId = 'guardrails' | 'npc_designer' | 'quest_network' | 'quest_editor' | 'director' | 'context' | 'sandbox'
 
 // ========== WebSocket & Runtime ==========
 export interface WebSocketMessage {
