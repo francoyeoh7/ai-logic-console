@@ -440,7 +440,7 @@ interface ConfigStore {
 }
 
 export const useConfigStore = create<ConfigStore>((set, get) => ({
-  activeModule: 'persona',
+  activeModule: 'npc_designer',
   setActiveModule: (m) => set({ activeModule: m }),
 
   // NPCs
