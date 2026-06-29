@@ -126,7 +126,7 @@ export function NpcProfile() {
           <label className="mb-1.5 block text-xs font-medium text-neutral-400">关联区域</label>
           <input
             value={npc.region ?? ''}
-            onChange={(e updateNpc(npc.id, { region: e.target.value })}
+                          onChange={(e) => updateNpc(npc.id, { region: e.target.value })}
             className="w-full rounded-md border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:ring-1 focus:ring-primary"
             placeholder="输入区域名"
           />
