@@ -41,6 +41,16 @@ const mockNpcs: NpcPersona[] = [
       { startHour: 8, endHour: 22, activity: '营业中' },
       { startHour: 22, endHour: 6, activity: '休息' },
     ],
+    relationships: [
+      { targetId: 'player', targetType: 'player', trust: 50, affection: 60, fear: 30, tags: ['观望中'], lastUpdated: Date.now() },
+      { targetId: 'guard_captain', targetType: 'npc', trust: 80, affection: 70, fear: 25, tags: ['老朋友'], lastUpdated: Date.now() },
+      { targetId: 'mysterious_merchant', targetType: 'npc', trust: 20, affection: 30, fear: 10, tags: ['戒备'], lastUpdated: Date.now() },
+    ],
+    currentEmotion: { primary: 'neutral', intensity: 0.2, decayRate: 0.05, lastUpdated: Date.now() },
+    inclinationFormulas: [
+      { actionType: 'trade', variables: [{ source: 'trait', key: 'greed', weight: 0.5 }, { source: 'relationship', key: 'trust', weight: 0.3 }, { source: 'emotion', key: 'fear', weight: -0.2 }], threshold: 40 },
+      { actionType: 'reveal_info', variables: [{ source: 'trait', key: 'loyalty', weight: -0.4 }, { source: 'relationship', key: 'affection', weight: 0.5 }, { source: 'relationship', key: 'trust', weight: 0.3 }], threshold: 60 },
+    ],
   },
   {
     id: 'mysterious_merchant',
@@ -52,6 +62,15 @@ const mockNpcs: NpcPersona[] = [
     faction: '无',
     region: '各地游走',
     schedule: [{ startHour: 10, endHour: 22, activity: '游商活动' }],
+    relationships: [
+      { targetId: 'player', targetType: 'player', trust: 40, affection: 50, fear: 10, tags: ['好奇'], lastUpdated: Date.now() },
+      { targetId: 'alchemist', targetType: 'npc', trust: 60, affection: 45, fear: 5, tags: ['学术交流'], lastUpdated: Date.now() },
+    ],
+    currentEmotion: { primary: 'neutral', intensity: 0.1, decayRate: 0.05, lastUpdated: Date.now() },
+    inclinationFormulas: [
+      { actionType: 'trade', variables: [{ source: 'trait', key: 'greed', weight: 0.6 }, { source: 'relationship', key: 'trust', weight: 0.2 }, { source: 'trait', key: 'charisma', weight: 0.2 }], threshold: 35 },
+      { actionType: 'reveal_info', variables: [{ source: 'relationship', key: 'affection', weight: 0.4 }, { source: 'trait', key: 'loyalty', weight: -0.3 }], threshold: 55 },
+    ],
   },
   {
     id: 'guard_captain',
@@ -66,6 +85,15 @@ const mockNpcs: NpcPersona[] = [
       { startHour: 6, endHour: 18, activity: '站岗巡逻' },
       { startHour: 18, endHour: 6, activity: '休息' },
     ],
+    relationships: [
+      { targetId: 'player', targetType: 'player', trust: 60, affection: 50, fear: 15, tags: ['观察中'], lastUpdated: Date.now() },
+      { targetId: 'tavern_keeper', targetType: 'npc', trust: 80, affection: 70, fear: 5, tags: ['老朋友'], lastUpdated: Date.now() },
+    ],
+    currentEmotion: { primary: 'neutral', intensity: 0.1, decayRate: 0.03, lastUpdated: Date.now() },
+    inclinationFormulas: [
+      { actionType: 'fight', variables: [{ source: 'trait', key: 'loyalty', weight: 0.5 }, { source: 'trait', key: 'aggression', weight: 0.3 }, { source: 'relationship', key: 'trust', weight: -0.2 }], threshold: 50 },
+      { actionType: 'reveal_info', variables: [{ source: 'trait', key: 'loyalty', weight: -0.2 }, { source: 'relationship', key: 'trust', weight: 0.6 }], threshold: 70 },
+    ],
   },
   {
     id: 'alchemist',
@@ -77,6 +105,15 @@ const mockNpcs: NpcPersona[] = [
     faction: '无',
     region: '希尔的小屋',
     schedule: [{ startHour: 0, endHour: 24, activity: '研究中(随时可访问)' }],
+    relationships: [
+      { targetId: 'player', targetType: 'player', trust: 30, affection: 40, fear: 5, tags: ['好奇'], lastUpdated: Date.now() },
+      { targetId: 'mysterious_merchant', targetType: 'npc', trust: 55, affection: 50, fear: 5, tags: ['学术交流'], lastUpdated: Date.now() },
+    ],
+    currentEmotion: { primary: 'neutral', intensity: 0.05, decayRate: 0.02, lastUpdated: Date.now() },
+    inclinationFormulas: [
+      { actionType: 'reveal_info', variables: [{ source: 'trait', key: 'patience', weight: 0.3 }, { source: 'relationship', key: 'trust', weight: 0.5 }, { source: 'trait', key: 'charisma', weight: 0.2 }], threshold: 45 },
+      { actionType: 'trade', variables: [{ source: 'trait', key: 'greed', weight: -0.4 }, { source: 'relationship', key: 'affection', weight: 0.4 }], threshold: 50 },
+    ],
   },
 ]
 

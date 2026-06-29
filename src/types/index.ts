@@ -15,6 +15,36 @@ export interface DailySchedule {
   activity: string
 }
 
+// ========== Crawford 状态变量 ==========
+export interface NpcRelationship {
+  targetId: string
+  targetType: 'player' | 'npc' | 'faction'
+  trust: number
+  affection: number
+  fear: number
+  tags: string[]
+  lastUpdated: number
+}
+
+export interface EmotionState {
+  primary: string
+  intensity: number
+  decayRate: number
+  lastUpdated: number
+}
+
+export interface InclinationVariable {
+  source: 'trait' | 'relationship' | 'emotion' | 'world_state'
+  key: string
+  weight: number
+}
+
+export interface InclinationFormula {
+  actionType: string
+  variables: InclinationVariable[]
+  threshold: number
+}
+
 export interface NpcPersona {
   id: string
   name: string
@@ -25,6 +55,9 @@ export interface NpcPersona {
   faction: string
   region: string
   schedule: DailySchedule[]
+  relationships: NpcRelationship[]
+  currentEmotion: EmotionState
+  inclinationFormulas: InclinationFormula[]
 }
 
 // ========== Memory ==========
