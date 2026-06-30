@@ -1,6 +1,8 @@
-import { FlaskConical, Shield, GitBranch, Activity, Download, Puzzle, MessageSquare, Users, Edit3 } from 'lucide-react'
+import { useState } from 'react'
+import { FlaskConical, Shield, GitBranch, Activity, Download, Puzzle, MessageSquare, Users, Edit3, ChevronDown, FileJson, FileText } from 'lucide-react'
 import { useConfigStore } from '../../useConfigStore'
 import type { ModuleId } from '../../types'
+import { exportAllForUe5, downloadJsonFile } from '../../services/ue5Exporter'
 
 const navItems: { id: ModuleId; label: string; icon: typeof FlaskConical }[] = [
   { id: 'guardrails', label: '护栏与公理', icon: Shield },
@@ -15,17 +17,27 @@ const navItems: { id: ModuleId; label: string; icon: typeof FlaskConical }[] = [
 export function Sidebar() {
   const active = useConfigStore((s) => s.activeModule)
   const setActive = useConfigStore((s) => s.setActiveModule)
-  const exportConfig = useConfigStore((s) => s.exportGlobalConfig)
+  const npcs = useConfigStore((s) => s.npcs)
+  const quests = useConfigStore((s) => s.questDefinitions)
+  const axioms = useConfigStore((s) => s.axioms)
+  const [showExportMenu, setShowExportMenu] = useState(false)
 
-  const handleExport = () => {
-    const json = exportConfig()
-    const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'global-config.json'
-    a.click()
-    URL.revokeObjectURL(url)
+  const handleExportUe5Npc = () => {
+    const bundle = exportAllForUe5(npcs, quests, axioms)
+    downloadJsonFile(bundle.npcTable, 'DT_NpcPersonas.json')
+    setShowExportMenu(false)
+  }
+
+  const handleExportUe5Quest = () => {
+    const bundle = exportAllForUe5(npcs, quests, axioms)
+    downloadJsonFile(bundle.questTable, 'DT_QuestDefinitions.json')
+    setShowExportMenu(false)
+  }
+
+  const handleExportUe5Guardrail = () => {
+    const bundle = exportAllForUe5(npcs, quests, axioms)
+    downloadJsonFile(bundle.guardrailTable, 'DT_GuardrailAxioms.json')
+    setShowExportMenu(false)
   }
 
   return (
@@ -60,14 +72,30 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="border-t border-neutral-800 p-3">
-        <button
-          onClick={handleExport}
-          className="flex w-full items-center justify-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-[11px] font-medium text-primary transition-colors hover:bg-primary/20"
-        >
-          <Download className="h-3.5 w-3.5" />
-          导出全局配置
-        </button>
+      <div className="border-t border-neutral-800 p-2">
+        <div className="relative">
+          <button
+            onClick={() => setShowExportMenu(!showExportMenu)}
+            className="flex w-full items-center justify-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-[11px] font-medium text-primary transition-colors hover:bg-primary/20"
+          >
+            <Download className="h-3.5 w-3.5" />
+            导出 UE5 DataTable
+            <ChevronDown className="h-3 w-3" />
+          </button>
+          {showExportMenu && (
+            <div className="absolute bottom-full left-0 right-0 mb-1 rounded-md border border-neutral-700 bg-neutral-900 shadow-xl overflow-hidden">
+              <button onClick={handleExportUe5Npc} className="flex w-full items-center gap-2 px-3 py-2 text-[10px] text-neutral-300 hover:bg-neutral-800">
+                <FileJson className="h-3 w-3 text-cyan-400" /> NPC 人设表
+              </button>
+              <button onClick={handleExportUe5Quest} className="flex w-full items-center gap-2 px-3 py-2 text-[10px] text-neutral-300 hover:bg-neutral-800">
+                <FileJson className="h-3 w-3 text-emerald-400" /> 任务定义表
+              </button>
+              <button onClick={handleExportUe5Guardrail} className="flex w-full items-center gap-2 px-3 py-2 text-[10px] text-neutral-300 hover:bg-neutral-800">
+                <FileJson className="h-3 w-3 text-amber-400" /> 护栏规则表
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   )
