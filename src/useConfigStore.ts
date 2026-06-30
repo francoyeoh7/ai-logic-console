@@ -432,6 +432,8 @@ interface ConfigStore {
   // Navigation
   activeModule: ModuleId
   setActiveModule: (m: ModuleId) => void
+  locale: 'zh' | 'en'
+  setLocale: (l: 'zh' | 'en') => void
 
   // NPCs
   npcs: NpcPersona[]
@@ -515,6 +517,10 @@ interface ConfigStore {
 export const useConfigStore = create<ConfigStore>((set, get) => ({
   activeModule: 'npc_designer',
   setActiveModule: (m) => set({ activeModule: m }),
+
+  // Language
+  locale: 'zh' as 'zh' | 'en',
+  setLocale: (l: 'zh' | 'en') => set({ locale: l }),
 
   // NPCs
   npcs: mockNpcs,
