@@ -109,7 +109,7 @@ export function Sidebar() {
           </button>
           {showExportMenu && (
             <div className="absolute bottom-full left-0 right-0 mb-1 rounded-md border border-neutral-700/50 bg-neutral-900 shadow-2xl shadow-black/50 overflow-hidden backdrop-blur-sm">
-              onClick={handleExportUe5Npc} className="flex w-full items-center gap-2 px-3 py-2 text-[10px] text-neutral-300 hover:bg-neutral-800/60 transition-colors">
+              <button onClick={handleExportUe5Npc} className="flex w-full items-center gap-2 px-3 py-2 text-[10px] text-neutral-300 hover:bg-neutral-800/60 transition-colors">
                 <FileJson className="h-3 w-3 text-cyan-400/80" /> {t.common.exportNpc}
               </button>
               <button onClick={handleExportUe5Quest} className="flex w-full items-center gap-2 px-3 py-2 text-[10px] text-neutral-300 hover:bg-neutral-800/60 transition-colors">
