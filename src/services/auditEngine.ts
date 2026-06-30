@@ -117,7 +117,8 @@ export function auditResponse(
         break
       }
 
-      case 'cap检测 NPC 是否声称能做出能力之外的行动
+      case 'capability': {
+        // 检测 NPC 是否声称能做出能力之外的行动
         const capPatterns = [
           /我去帮你[杀打猎捕]/,
           /我[能会]?飞/,
