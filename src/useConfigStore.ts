@@ -59,6 +59,10 @@ const mockNpcs: NpcPersona[] = [
       if (m.intent === '打听') return { ...m, weight: 0.4 }
       return m
     }),
+    impressions: [
+      { npcId: 'tavern_keeper', targetId: 'player', targetType: 'player', summary: '这个陌生人看起来有两下子，但还没完全信任', confidence: 0.45, sourceMemoryIds: ['mem-001', 'mem-002'], lastReinforced: Date.now() },
+      { npcId: 'tavern_keeper', targetId: 'guard_captain', targetType: 'npc', summary: '艾德是个可靠的老朋友，在镇上很有威信', confidence: 0.9, sourceMemoryIds: ['mem-010'], lastReinforced: Date.now() },
+    ],
   },
   {
     id: 'mysterious_merchant',
@@ -146,15 +150,24 @@ const mockNpcs: NpcPersona[] = [
 ]
 
 const mockMemories: Memory[] = [
-  { id: 'mem-001', npcId: 'tavern_keeper', timestamp: Date.now() - 3600000, summary: '玩家帮助老韩赶走了闹事的强盗', importance: 8, pinned: true },
-  { id: 'mem-002', npcId: 'tavern_keeper', timestamp: Date.now() - 7200000, summary: '玩家在老韩面前展示了罕见的龙鳞碎片', importance: 6, pinned: true },
-  { id: 'mem-003', npcId: 'mysterious_merchant', timestamp: Date.now() - 1800000, summary: '玩家用一块古代符文换取了菲娜的信任', importance: 9, pinned: true },
-  { id: 'mem-004', npcId: 'alchemist', timestamp: Date.now() - 900000, summary: '玩家正确地解答了希尔的炼金谜题', importance: 7, pinned: true },
-  { id: 'mem-005', npcId: 'tavern_keeper', timestamp: Date.now() - 600000, summary: '玩家在酒馆打碎了一个杯子', importance: 2, pinned: false },
-  { id: 'mem-006', npcId: 'guard_captain', timestamp: Date.now() - 300000, summary: '玩家在城门与卫兵发生口角', importance: 4, pinned: false },
-  { id: 'mem-007', npcId: 'mysterious_merchant', timestamp: Date.now() - 450000, summary: '菲娜向玩家透露了一个关于龙墓的传说', importance: 7, pinned: false },
-  { id: 'mem-008', npcId: 'tavern_keeper', timestamp: Date.now() - 120000, summary: '玩家点了一杯最贵的麦酒', importance: 1, pinned: false },
-  { id: 'mem-009', npcId: 'alchemist', timestamp: Date.now() - 240000, summary: '玩家带来了一种罕见的月光草样本', importance: 5, pinned: false },
+  { id: 'mem-001', npcId: 'tavern_keeper', timestamp: Date.now() - 3600000, summary: '玩家帮助老韩赶走了闹事的强盗', importance: 8, pinned: true, sourceType: 'player_action', relatedEntityIds: ['player'], location: '风语镇·酒馆', layer: 'core', decayRate: 0.02, derivedEffects: { relationImpact: [{ targetId: 'player', trustDelta: 15, affectionDelta: 10, fearDelta: -5 }], intentTriggers: ['感谢'], taskFlags: [] } },
+  { id: 'mem-002', npcId: 'tavern_keeper', timestamp: Date.now() - 7200000, summary: '玩家在老韩面前展示了罕见的龙鳞碎片', importance: 6, pinned: true, sourceType: 'player_action', relatedEntityIds: ['player'], location: '风语镇·酒馆', layer: 'core', decayRate: 0.03, derivedEffects: { relationImpact: [{ targetId: 'player', trustDelta: 5, affectionDelta: 8, fearDelta: 0 }], intentTriggers: ['回忆'], taskFlags: [] } },
+  { id: 'mem-003', npcId: 'mysterious_merchant', timestamp: Date.now() - 1800000, summary: '玩家用古代符文换取了菲娜的信任', importance: 9, pinned: true, sourceType: 'player_action', relatedEntityIds: ['player'], location: '风语镇·路口', layer: 'core', decayRate: 0.02, derivedEffects: { relationImpact: [{ targetId: 'player', trustDelta: 20, affectionDelta: 15, fearDelta: -10 }], intentTriggers: ['交易', '打听'], taskFlags: [] } },
+  { id: 'mem-004', npcId: 'alchemist', timestamp: Date.now() - 900000, summary: '玩家正确解答了希尔的炼金谜题', importance: 7, pinned: true, sourceType: 'player_action', relatedEntityIds: ['player'], location: '希尔的小屋', layer: 'core', decayRate: 0.03, derivedEffects: { relationImpact: [{ targetId: 'player', trustDelta: 12, affectionDelta: 10, fearDelta: 0 }], intentTriggers: ['回忆'], taskFlags: [] } },
+  { id: 'mem-005', npcId: 'tavern_keeper', timestamp: Date.now() - 600000, summary: '玩家在酒馆打碎了杯子', importance: 2, pinned: false, sourceType: 'player_action', relatedEntityIds: ['player'], location: '风语镇·酒馆', layer: 'working', decayRate: 0.08, derivedEffects: { relationImpact: [{ targetId: 'player', trustDelta: -2, affectionDelta: -1, fearDelta: 0 }], intentTriggers: ['抱怨'], taskFlags: [] } },
+  { id: 'mem-006', npcId: 'guard_captain', timestamp: Date.now() - 300000, summary: '玩家在城门与卫兵发生口角', importance: 4, pinned: false, sourceType: 'player_action', relatedEntityIds: ['player', 'guard_captain'], location: '风语镇·城门', layer: 'working', decayRate: 0.06, derivedEffects: { relationImpact: [{ targetId: 'player', trustDelta: -8, affectionDelta: -5, fearDelta: 5 }], intentTriggers: ['警告'], taskFlags: [] } },
+  { id: 'mem-007', npcId: 'mysterious_merchant', timestamp: Date.now() - 450000, summary: '菲娜向玩家透露了龙墓的传说', importance: 7, pinned: false, sourceType: 'self_event', relatedEntityIds: ['player'], location: '风语镇·路边', layer: 'working', decayRate: 0.04, derivedEffects: { relationImpact: [{ targetId: 'player', trustDelta: 3, affectionDelta: 5, fearDelta: 0 }], intentTriggers: ['回忆'], taskFlags: ['dragon_quest_hint'] } },
+  { id: 'mem-008', npcId: 'tavern_keeper', timestamp: Date.now() - 120000, summary: '玩家点了最贵的麦酒', importance: 1, pinned: false, sourceType: 'player_action', relatedEntityIds: ['player'], location: '风语镇·酒馆', layer: 'working', decayRate: 0.1, derivedEffects: { relationImpact: [{ targetId: 'player', trustDelta: 1, affectionDelta: 2, fearDelta: 0 }], intentTriggers: [], taskFlags: [] } },
+  { id: 'mem-009', npcId: 'alchemist', timestamp: Date.now() - 240000, summary: '玩家带来了罕见的月光草样本', importance: 5, pinned: false, sourceType: 'player_action', relatedEntityIds: ['player'], location: '希尔的小屋', layer: 'working', decayRate: 0.05, derivedEffects: { relationImpact: [{ targetId: 'player', trustDelta: 5, affectionDelta: 8, fearDelta: 0 }], intentTriggers: ['感谢'], taskFlags: ['alchemy_quest_progress'] } },
+
+  // NPC间记忆 + 环境记忆
+  { id: 'mem-010', npcId: 'tavern_keeper', timestamp: Date.now() - 18000000, summary: '卫队长艾德在酒馆和老韩喝了一整晚的酒', importance: 4, pinned: false, sourceType: 'npc_action', relatedEntityIds: ['guard_captain'], location: '风语镇·酒馆', layer: 'working', decayRate: 0.07, derivedEffects: { relationImpact: [{ targetId: 'guard_captain', trustDelta: 2, affectionDelta: 5, fearDelta: 0 }], intentTriggers: ['回忆'], taskFlags: [] } },
+  { id: 'mem-011', npcId: 'tavern_keeper', timestamp: Date.now() - 43200000, summary: '昨晚下了大暴雨，屋顶漏水了几个地方', importance: 3, pinned: false, sourceType: 'environment', relatedEntityIds: [], location: '风语镇·酒馆', layer: 'working', decayRate: 0.09, derivedEffects: { relationImpact: [], intentTriggers: ['抱怨'], taskFlags: [] } },
+  { id: 'mem-012', npcId: 'tavern_keeper', timestamp: Date.now() - 5400000, summary: '菲娜路过酒馆没进来，老韩觉得这女人太傲', importance: 3, pinned: false, sourceType: 'witnessed', relatedEntityIds: ['mysterious_merchant'], location: '风语镇', layer: 'working', decayRate: 0.07, derivedEffects: { relationImpact: [{ targetId: 'mysterious_merchant', trustDelta: -2, affectionDelta: -3, fearDelta: 0 }], intentTriggers: ['抱怨'], taskFlags: [] } },
+  { id: 'mem-013', npcId: 'tavern_keeper', timestamp: Date.now() - 7200000, summary: '镇上来了个陌生的旅行商人，买了三杯酒就匆匆走了', importance: 2, pinned: false, sourceType: 'witnessed', relatedEntityIds: [], location: '风语镇·酒馆', layer: 'working', decayRate: 0.1, derivedEffects: { relationImpact: [], intentTriggers: ['闲聊'], taskFlags: [] } },
+  { id: 'mem-014', npcId: 'tavern_keeper', timestamp: Date.now() - 600000, summary: '今天生意不错，比平时多赚了三十个铜板', importance: 2, pinned: false, sourceType: 'self_event', relatedEntityIds: [], location: '风语镇·酒馆', layer: 'working', decayRate: 0.09, derivedEffects: { relationImpact: [], intentTriggers: ['闲聊'], taskFlags: [] } },
+  { id: 'mem-015', npcId: 'mysterious_merchant', timestamp: Date.now() - 3600000, summary: '菲娜在路边看见卫队长教训了两个乞丐', importance: 3, pinned: false, sourceType: 'witnessed', relatedEntityIds: ['guard_captain'], location: '风语镇·城门', layer: 'working', decayRate: 0.08, derivedEffects: { relationImpact: [{ targetId: 'guard_captain', trustDelta: 1, affectionDelta: 0, fearDelta: 3 }], intentTriggers: ['闲聊'], taskFlags: [] } },
+  { id: 'mem-016', npcId: 'guard_captain', timestamp: Date.now() - 7200000, summary: '北境巡逻队报告狼群活动明显增多', importance: 6, pinned: false, sourceType: 'npc_action', relatedEntityIds: [], location: '风语镇·城门', layer: 'working', decayRate: 0.04, derivedEffects: { relationImpact: [], intentTriggers: ['警告'], taskFlags: ['wolf_main_quest'] } },
 ]
 
 const mockGuardrailSettings: GlobalGuardrailSettings = {

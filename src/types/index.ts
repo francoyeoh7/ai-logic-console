@@ -73,9 +73,10 @@ export interface NpcPersona {
   inclinationFormulas: InclinationFormula[]
   dialogueStyles: DialogueStyle[]
   intentMappings: IntentMapping[]
+  impressions: WorldImpression[]
 }
 
-// ========== Memory ==========
+// ========== Memory System (四层架构) ==========
 export interface Memory {
   id: string
   npcId: string
@@ -83,6 +84,32 @@ export interface Memory {
   summary: string
   importance: number
   pinned: boolean
+
+  // 分类
+  sourceType: 'player_action' | 'npc_action' | 'witnessed' | 'environment' | 'self_event'
+  relatedEntityIds: string[]
+  location: string
+
+  // 记忆层级
+  layer: 'working' | 'core'
+  decayRate: number
+
+  // 派生效果
+  derivedEffects?: {
+    relationImpact: { targetId: string; trustDelta: number; affectionDelta: number; fearDelta: number }[]
+    intentTriggers: string[]
+    taskFlags: string[]
+  }
+}
+
+export interface WorldImpression {
+  npcId: string
+  targetId: string
+  targetType: 'player' | 'npc' | 'faction' | 'location'
+  summary: string
+  confidence: number
+  sourceMemoryIds: string[]
+  lastReinforced: number
 }
 
 // ========== Guardrails ==========
