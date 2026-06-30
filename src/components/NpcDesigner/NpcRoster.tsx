@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { Search } from 'lucide-react'
 import { useConfigStore } from '../../useConfigStore'
+import { zh, en } from '../../lib/i18n'
 
 export function NpcRoster() {
   const npcs = useConfigStore((s) => s.npcs)
   const selectedId = useConfigStore((s) => s.selectedNpcId)
   const selectNpc = useConfigStore((s) => s.selectNpc)
+  const locale = useConfigStore((s) => s.locale)
+  const t = locale === 'zh' ? zh.npcDesigner : en.npcDesigner
   const [query, setQuery] = useState('')
 
   const filtered = npcs.filter(
@@ -22,12 +25,11 @@ export function NpcRoster() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="搜索 NPC..."
-            className="w-full rounded-md border border-neutral-800 bg-neutral-900 py-2 pl-8 pr-3 text-xs text-neutral-200 placeholder:text-neutral-600 focus:ring-1 focus:ring-primary"
+            placeholder={t.search}
+            className="w-full rounded-md border border-neutral-800 bg-neutral-900 py-2 pl-8 pr-3 text-xs text-neutral-200 placeholder:text-neutral-600 focus:ring-1 focus:ring-primary/30"
           />
         </div>
       </div>
-
       <div className="flex-1 space-y-0.5 overflow-y-auto px-2 pb-2">
         {filtered.map((npc) => {
           const isSelected = selectedId === npc.id
@@ -37,8 +39,8 @@ export function NpcRoster() {
               onClick={() => selectNpc(npc.id)}
               className={`w-full rounded-md px-3 py-2.5 text-left transition-all ${
                 isSelected
-                  ? 'bg-primary/10 border border-primary/20'
-                  : 'border border-transparent hover:bg-neutral-800/50'
+                  ? 'bg-primary/10 border border-primary/10'
+                  : 'border border-transparent hover:bg-neutral-800/40'
               }`}
             >
               <p className="text-xs font-medium text-neutral-200">{npc.name}</p>
