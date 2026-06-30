@@ -147,12 +147,12 @@ export function NpcProfile() {
               >
                 <Trash2 className="h-3 w-3" />
               </button>
-          ))}
+            </div>))}
         </div>
         <button
           onClick={() => {
-            const schedule = [...(npc.schedule ?? []), { startHour: 0, endHour: 24, activity: t.addSchedule }]
-            updateNpc(npc.id, { schedule })
+            const newSchedule = [...(npc.schedule ?? []), { startHour: 0, endHour: 24, activity: t.addSchedule }]
+            updateNpc(npc.id, { schedule: newSchedule })
           }}
           className="mt-1.5 flex items-center gap-1 text-[10px] text-neutral-500 hover:text-neutral-300"
         >
