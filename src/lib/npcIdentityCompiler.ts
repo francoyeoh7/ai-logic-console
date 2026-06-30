@@ -1,7 +1,7 @@
 /**
  * 编译 NPC 完整人格画像 → System Prompt
  */
-import type { NpcPersona, QuestDefinition } from '../../types'
+import type { NpcPersona, QuestDefinition } from '../types'
 
 export function compileNpcIdentity(npc: NpcPersona, quests: QuestDefinition[]): string {
   const parts: string[] = []

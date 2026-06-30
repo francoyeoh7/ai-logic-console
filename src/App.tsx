@@ -5,6 +5,7 @@ import { Guardrails } from './components/Guardrails/Guardrails'
 import { QuestNetwork } from './components/QuestNetwork/QuestNetwork'
 import { QuestEditor } from './components/QuestEditor/QuestEditor'
 import { DirectorDashboard } from './components/DirectorDashboard/DirectorDashboard'
+import { RuntimeMonitor } from './components/RuntimeMonitor/RuntimeMonitor'
 import { ContextComposer } from './components/ContextComposer/ContextComposer'
 import { ConversationSandbox } from './components/ConversationSandbox/ConversationSandbox'
 
@@ -14,6 +15,7 @@ const modules = {
   quest_network: QuestNetwork,
   quest_editor: QuestEditor,
   director: DirectorDashboard,
+  runtime_monitor: RuntimeMonitor,
   context: ContextComposer,
   sandbox: ConversationSandbox,
 }

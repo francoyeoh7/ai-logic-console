@@ -241,7 +241,7 @@ export interface GlobalConfig {
 }
 
 // ========== Navigation ==========
-export type ModuleId = 'guardrails' | 'npc_designer' | 'quest_network' | 'quest_editor' | 'director' | 'context' | 'sandbox'
+export type ModuleId = 'guardrails' | 'npc_designer' | 'quest_network' | 'quest_editor' | 'director' | 'runtime_monitor' | 'context' | 'sandbox'
 
 // ========== WebSocket & Runtime ==========
 export interface WebSocketMessage {
@@ -256,6 +256,39 @@ export interface NpcStatusSnapshot {
   action: string
   emotion: string
   state: string
+  statusText?: string
+  updatedAt?: number
+}
+
+export interface RuntimeMemoryRecord {
+  id: string
+  ownerNpcId: string
+  participants: string[]
+  summary: string
+  semanticTags: string[]
+  importance: number
+  pinned: boolean
+  timestamp: number
+}
+
+export interface RuntimeSocialBeat {
+  id: string
+  sourceNpcId: string
+  targetNpcId: string
+  summary: string
+  status: string
+  memoryIds: string[]
+  timestamp: number
+}
+
+export interface RuntimeDirectorMetrics {
+  flowIndex: number
+  boredomSeconds: number
+  pressureSeconds: number
+  lastMeaningfulInteractionSeconds: number
+  activeNpcCount: number
+  memoryCount: number
+  updatedAt: number
 }
 
 export interface LlmCallLogEntry {
@@ -285,6 +318,9 @@ export interface InterventionLogEntry {
 export interface RuntimeState {
   connected: boolean
   npcStatuses: NpcStatusSnapshot[]
+  runtimeMemories: RuntimeMemoryRecord[]
+  socialBeats: RuntimeSocialBeat[]
+  directorMetrics: RuntimeDirectorMetrics | null
   llmCallLogs: LlmCallLogEntry[]
   guardrailLogs: GuardrailLogEntry[]
   interventionLogs: InterventionLogEntry[]

@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { FlaskConical, Shield, GitBranch, Activity, Download, Puzzle, MessageSquare, Users, Edit3, ChevronDown, FileJson, Languages } from 'lucide-react'
+import { FlaskConical, Shield, GitBranch, Activity, Download, Puzzle, MessageSquare, Users, Edit3, ChevronDown, FileJson, Radio } from 'lucide-react'
 import { useConfigStore } from '../../useConfigStore'
 import type { ModuleId } from '../../types'
 import { exportAllForUe5, downloadJsonFile } from '../../services/ue5Exporter'
 import { zh, en } from '../../lib/i18n'
 
-type NavKey = 'guardrails' | 'npcDesigner' | 'questNetwork' | 'questEditor' | 'director' | 'context' | 'sandbox'
+type NavKey = 'guardrails' | 'npcDesigner' | 'questNetwork' | 'questEditor' | 'director' | 'runtimeMonitor' | 'context' | 'sandbox'
 
 const navKeys: { id: ModuleId; key: NavKey; icon: typeof FlaskConical }[] = [
   { id: 'guardrails', key: 'guardrails', icon: Shield },
@@ -13,6 +13,7 @@ const navKeys: { id: ModuleId; key: NavKey; icon: typeof FlaskConical }[] = [
   { id: 'quest_network', key: 'questNetwork', icon: GitBranch },
   { id: 'quest_editor', key: 'questEditor', icon: Edit3 },
   { id: 'director', key: 'director', icon: Activity },
+  { id: 'runtime_monitor', key: 'runtimeMonitor', icon: Radio },
   { id: 'context', key: 'context', icon: Puzzle },
   { id: 'sandbox', key: 'sandbox', icon: MessageSquare },
 ]

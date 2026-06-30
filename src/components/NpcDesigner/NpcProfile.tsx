@@ -109,7 +109,7 @@ export function NpcProfile() {
 
       <div className="mb-5 grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1.5 block text-[11px] font-medium text-neutral-400">{t.Faction}</label>
+          <label className="mb-1.5 block text-[11px] font-medium text-neutral-400">{t.faction}</label>
           <input
             value={npc.faction ?? ''}
             onChange={(e) => updateNpc(npc.id, { faction: e.target.value })}

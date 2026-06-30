@@ -10,8 +10,10 @@ import type {
   TensionDataPoint,
   GlobalConfig,
   ModuleId,
-  ActionDefinition,
   NpcStatusSnapshot,
+  RuntimeDirectorMetrics,
+  RuntimeMemoryRecord,
+  RuntimeSocialBeat,
   LlmCallLogEntry,
   GuardrailLogEntry,
   InterventionLogEntry,
@@ -19,8 +21,9 @@ import type {
   NpcRole,
   QuestDefinition,
   QuestNode,
+  WebSocketMessage,
 } from './types'
-import type { ActionCategory } from './types/actions'
+import type { ActionCategory, ActionDefinition } from './types/actions'
 import { wsClient } from './services/websocket'
 import { llmService } from './services/llmService'
 import { generateDialogueStylesFromTraits, getDefaultIntentMappings } from './lib/styleGenerator'
@@ -89,6 +92,7 @@ const mockNpcs: NpcPersona[] = [
       if (m.intent === '闲聊') return { ...m, weight: 0.1 }
       return m
     }),
+    impressions: [],
   },
   {
     id: 'guard_captain',
@@ -119,6 +123,7 @@ const mockNpcs: NpcPersona[] = [
       if (m.intent === '交易') return { ...m, weight: 0.1 }
       return m
     }),
+    impressions: [],
   },
   {
     id: 'alchemist',
@@ -146,6 +151,7 @@ const mockNpcs: NpcPersona[] = [
       if (m.intent === '交易') return { ...m, weight: 0.1 }
       return m
     }),
+    impressions: [],
   },
 ]
 
@@ -226,6 +232,140 @@ const mockTensionData: TensionDataPoint[] = Array.from({ length: 60 }, (_, i) =>
   time: i,
   tension: 40 + Math.sin(i / 8) * 25 + Math.random() * 15,
 }))
+
+const now = Date.now()
+
+const mockRuntimeMemories: RuntimeMemoryRecord[] = [
+  {
+    id: 'rt-mem-001',
+    ownerNpcId: 'tavern_keeper',
+    participants: ['tavern_keeper', 'guard_captain'],
+    summary: '酒馆老板把湿斗篷陌生人打听货船的事告诉了卫队长。',
+    semanticTags: ['cargo', 'wet_cloak', 'tavern'],
+    importance: 8,
+    pinned: false,
+    timestamp: now - 18_000,
+  },
+  {
+    id: 'rt-mem-002',
+    ownerNpcId: 'guard_captain',
+    participants: ['guard_captain', 'mysterious_merchant'],
+    summary: '卫队长盘问神秘游商，蓝色封蜡箱的来源仍然可疑。',
+    semanticTags: ['blue_wax', 'crate', 'merchant'],
+    importance: 8,
+    pinned: false,
+    timestamp: now - 11_000,
+  },
+  {
+    id: 'rt-mem-003',
+    ownerNpcId: 'alchemist',
+    participants: ['mysterious_merchant', 'alchemist'],
+    summary: '炼金术士检查了发冷盐晶样本，怀疑它与风暴残留有关。',
+    semanticTags: ['salt_crystal', 'storm_residue', 'sample'],
+    importance: 9,
+    pinned: false,
+    timestamp: now - 5_000,
+  },
+]
+
+const mockSocialBeats: RuntimeSocialBeat[] = [
+  {
+    id: 'rt-beat-001',
+    sourceNpcId: 'tavern_keeper',
+    targetNpcId: 'guard_captain',
+    summary: '报告湿斗篷陌生人与货船线索。',
+    status: 'completed',
+    memoryIds: ['rt-mem-001'],
+    timestamp: now - 18_000,
+  },
+  {
+    id: 'rt-beat-002',
+    sourceNpcId: 'guard_captain',
+    targetNpcId: 'mysterious_merchant',
+    summary: '盘问蓝色封蜡箱来源。',
+    status: 'completed',
+    memoryIds: ['rt-mem-002'],
+    timestamp: now - 11_000,
+  },
+  {
+    id: 'rt-beat-003',
+    sourceNpcId: 'mysterious_merchant',
+    targetNpcId: 'alchemist',
+    summary: '交出盐晶样本并等待判断。',
+    status: 'active',
+    memoryIds: ['rt-mem-003'],
+    timestamp: now - 5_000,
+  },
+]
+
+const mockRuntimeNpcStatuses: NpcStatusSnapshot[] = [
+  { npcId: 'tavern_keeper', action: 'SPEAK', emotion: 'concerned', state: '检查酒桶封口', statusText: '检查酒桶封口', updatedAt: now - 4_000 },
+  { npcId: 'guard_captain', action: 'QUESTION', emotion: 'alert', state: '搜查旧酒馆后门', statusText: '搜查旧酒馆后门', updatedAt: now - 8_000 },
+  { npcId: 'mysterious_merchant', action: 'WHISPER', emotion: 'guarded', state: '压低声音应付盘问', statusText: '压低声音应付盘问', updatedAt: now - 6_000 },
+  { npcId: 'alchemist', action: 'INSPECT', emotion: 'focused', state: '检查可疑盐晶', statusText: '检查可疑盐晶', updatedAt: now - 3_000 },
+]
+
+const mockDirectorMetrics: RuntimeDirectorMetrics = {
+  flowIndex: 71,
+  boredomSeconds: 12,
+  pressureSeconds: 28,
+  lastMeaningfulInteractionSeconds: 4,
+  activeNpcCount: 4,
+  memoryCount: mockRuntimeMemories.length,
+  updatedAt: now,
+}
+
+const asStringArray = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+
+const normalizeRuntimeMemory = (payload: Record<string, unknown>): RuntimeMemoryRecord => ({
+  id: typeof payload.id === 'string' ? payload.id : `rt-mem-${Date.now()}`,
+  ownerNpcId: typeof payload.ownerNpcId === 'string' ? payload.ownerNpcId : typeof payload.owner === 'string' ? payload.owner : 'unknown',
+  participants: asStringArray(payload.participants),
+  summary: typeof payload.summary === 'string' ? payload.summary : '',
+  semanticTags: asStringArray(payload.semanticTags ?? payload.tags),
+  importance: typeof payload.importance === 'number' ? payload.importance : 5,
+  pinned: Boolean(payload.pinned),
+  timestamp: typeof payload.timestamp === 'number' ? payload.timestamp : Date.now(),
+})
+
+const normalizeSocialBeat = (payload: Record<string, unknown>): RuntimeSocialBeat => ({
+  id: typeof payload.id === 'string' ? payload.id : `rt-beat-${Date.now()}`,
+  sourceNpcId: typeof payload.sourceNpcId === 'string' ? payload.sourceNpcId : typeof payload.source === 'string' ? payload.source : 'unknown',
+  targetNpcId: typeof payload.targetNpcId === 'string' ? payload.targetNpcId : typeof payload.target === 'string' ? payload.target : 'unknown',
+  summary: typeof payload.summary === 'string' ? payload.summary : '',
+  status: typeof payload.status === 'string' ? payload.status : 'completed',
+  memoryIds: asStringArray(payload.memoryIds),
+  timestamp: typeof payload.timestamp === 'number' ? payload.timestamp : Date.now(),
+})
+
+const normalizeNpcStatus = (value: unknown): NpcStatusSnapshot | null => {
+  if (!value || typeof value !== 'object') return null
+  const payload = value as Record<string, unknown>
+  const npcId = typeof payload.npcId === 'string' ? payload.npcId : typeof payload.id === 'string' ? payload.id : null
+  if (!npcId) return null
+  return {
+    npcId,
+    action: typeof payload.action === 'string' ? payload.action : 'OBSERVE',
+    emotion: typeof payload.emotion === 'string' ? payload.emotion : 'neutral',
+    state: typeof payload.state === 'string' ? payload.state : typeof payload.statusText === 'string' ? payload.statusText : 'idle',
+    statusText: typeof payload.statusText === 'string' ? payload.statusText : undefined,
+    updatedAt: typeof payload.updatedAt === 'number' ? payload.updatedAt : Date.now(),
+  }
+}
+
+const normalizeDirectorMetrics = (payload: Record<string, unknown>): RuntimeDirectorMetrics => ({
+  flowIndex: typeof payload.flowIndex === 'number' ? payload.flowIndex : 0,
+  boredomSeconds: typeof payload.boredomSeconds === 'number' ? payload.boredomSeconds : 0,
+  pressureSeconds: typeof payload.pressureSeconds === 'number' ? payload.pressureSeconds : 0,
+  lastMeaningfulInteractionSeconds:
+    typeof payload.lastMeaningfulInteractionSeconds === 'number' ? payload.lastMeaningfulInteractionSeconds : 0,
+  activeNpcCount: typeof payload.activeNpcCount === 'number' ? payload.activeNpcCount : 0,
+  memoryCount: typeof payload.memoryCount === 'number' ? payload.memoryCount : 0,
+  updatedAt: typeof payload.updatedAt === 'number' ? payload.updatedAt : Date.now(),
+})
+
+let runtimeWsSubscribed = false
 
 const mockActions: ActionDefinition[] = [
   {
@@ -484,9 +624,14 @@ interface ConfigStore {
 
   // Runtime State
   npcStatuses: NpcStatusSnapshot[]
+  runtimeMemories: RuntimeMemoryRecord[]
+  socialBeats: RuntimeSocialBeat[]
+  directorMetrics: RuntimeDirectorMetrics | null
+  runtimeLastUpdated: number | null
   llmCallLogs: LlmCallLogEntry[]
   guardrailLogs: GuardrailLogEntry[]
   interventionLogs: InterventionLogEntry[]
+  ingestRuntimeMessage: (msg: WebSocketMessage) => void
   clearRuntimeLogs: () => void
 
   // Context Assembly
@@ -658,6 +803,12 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
   // ===== WebSocket =====
   wsConnected: false,
   connectWebSocket: (url) => {
+    if (!runtimeWsSubscribed) {
+      wsClient.subscribe(null, (msg) => {
+        useConfigStore.getState().ingestRuntimeMessage(msg)
+      })
+      runtimeWsSubscribed = true
+    }
     wsClient.connect(url, (connected) => {
       useConfigStore.setState({ wsConnected: connected })
     })
@@ -666,12 +817,81 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
   sendWsMessage: (type, payload) => wsClient.send(type, payload),
 
   // ===== Runtime State =====
-  npcStatuses: [],
+  npcStatuses: mockRuntimeNpcStatuses,
+  runtimeMemories: mockRuntimeMemories,
+  socialBeats: mockSocialBeats,
+  directorMetrics: mockDirectorMetrics,
+  runtimeLastUpdated: mockDirectorMetrics.updatedAt,
   llmCallLogs: [],
   guardrailLogs: [],
   interventionLogs: [],
+  ingestRuntimeMessage: (msg) => {
+    const receivedAt = Date.now()
+    const payload = msg.payload ?? {}
+
+    if (msg.type === 'memory_snapshot') {
+      const rawMemories = Array.isArray(payload.memories) ? payload.memories : []
+      set({
+        runtimeMemories: rawMemories
+          .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+          .map(normalizeRuntimeMemory),
+        runtimeLastUpdated: receivedAt,
+      })
+      return
+    }
+
+    if (msg.type === 'memory_added') {
+      const memory = normalizeRuntimeMemory(payload)
+      set((s) => ({
+        runtimeMemories: [memory, ...s.runtimeMemories.filter((m) => m.id !== memory.id)].slice(0, 200),
+        runtimeLastUpdated: receivedAt,
+      }))
+      return
+    }
+
+    if (msg.type === 'social_beat') {
+      const beat = normalizeSocialBeat(payload)
+      set((s) => ({
+        socialBeats: [beat, ...s.socialBeats.filter((b) => b.id !== beat.id)].slice(0, 80),
+        runtimeLastUpdated: receivedAt,
+      }))
+      return
+    }
+
+    if (msg.type === 'npc_status_snapshot') {
+      const rawStatuses = Array.isArray(payload.npcs) ? payload.npcs : Array.isArray(payload.statuses) ? payload.statuses : []
+      const statuses = rawStatuses.map(normalizeNpcStatus).filter((status): status is NpcStatusSnapshot => Boolean(status))
+      set({ npcStatuses: statuses, runtimeLastUpdated: receivedAt })
+      return
+    }
+
+    if (msg.type === 'director_metrics') {
+      set({ directorMetrics: normalizeDirectorMetrics(payload), runtimeLastUpdated: receivedAt })
+      return
+    }
+
+    if (msg.type === 'llm_call_log') {
+      const entry = payload as unknown as LlmCallLogEntry
+      set((s) => ({ llmCallLogs: [entry, ...s.llmCallLogs].slice(0, 80), runtimeLastUpdated: receivedAt }))
+      return
+    }
+
+    if (msg.type === 'guardrail_fire') {
+      const entry = payload as unknown as GuardrailLogEntry
+      set((s) => ({ guardrailLogs: [entry, ...s.guardrailLogs].slice(0, 80), runtimeLastUpdated: receivedAt }))
+    }
+  },
   clearRuntimeLogs: () =>
-    set({ npcStatuses: [], llmCallLogs: [], guardrailLogs: [], interventionLogs: [] }),
+    set({
+      npcStatuses: [],
+      runtimeMemories: [],
+      socialBeats: [],
+      directorMetrics: null,
+      runtimeLastUpdated: null,
+      llmCallLogs: [],
+      guardrailLogs: [],
+      interventionLogs: [],
+    }),
 
   // ===== Context Assembly =====
   contextSections: [
