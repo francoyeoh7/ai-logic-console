@@ -1,6 +1,7 @@
 import { GlobalToggles } from './GlobalToggles'
 import { AxiomBuilder } from './AxiomBuilder'
 import { FallbackConfig } from './FallbackConfig'
+import { AuditConfig } from './AuditConfig'
 
 export function Guardrails() {
   return (
@@ -8,7 +9,7 @@ export function Guardrails() {
       <div className="mb-5">
         <h2 className="text-sm font-semibold text-neutral-200">护栏与绝对公理</h2>
         <p className="mt-1 text-xs text-neutral-500">
-          设定不可被 LLM 幻觉绕过的物理与剧情铁律
+          五层红线防线 · 预输出审核 · 兜底策略
         </p>
       </div>
 
@@ -17,8 +18,9 @@ export function Guardrails() {
           <GlobalToggles />
           <FallbackConfig />
         </div>
-        <div className="col-span-2">
+        <div className="col-span-2 space-y-5">
           <AxiomBuilder />
+          <AuditConfig />
         </div>
       </div>
     </div>
